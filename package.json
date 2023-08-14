@@ -1,0 +1,14 @@
+{
+    "name": "taskhub",
+    "description": "Task Management Application",
+    "private": true,
+    "author": {
+        "name": "Quoc Lien"
+    },
+    "version": "0.0.1",
+    "type": "module",
+    "scripts": {
+        "build": "echo 'Build script not defined'",
+        "start": "echo 'Start script not defined'"
+      }
+} 
