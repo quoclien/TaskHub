@@ -3,16 +3,18 @@ using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var databaseName = "task_hub";
 var mongoConnectionString = builder.Configuration.GetConnectionString("MongoDBConnection");
 var mongoClient = new MongoClient(mongoConnectionString);
-var mongoDatabase = mongoClient.GetDatabase(databaseName);
-builder.Services.AddSingleton(mongoDatabase);
-builder.Services.AddDbContext<TaskDbContext>(options => options.UseMongoDB(mongoClient, databaseName)); // Add the TaskDbContext as a service
+var databaseName = builder.Configuration.GetSection("DatabaseName").Value;
+if (databaseName != null)
+{
+    var mongoDatabase = mongoClient.GetDatabase(databaseName);
+    builder.Services.AddSingleton(mongoDatabase);
+    builder.Services.AddDbContext<TaskDbContext>(options => options.UseMongoDB(mongoClient, databaseName));
+}
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 
-// Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddControllers();
 
