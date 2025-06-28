@@ -1,14 +1,30 @@
 {
-    "name": "taskhub",
-    "description": "Task Management Application",
-    "private": true,
-    "author": {
-        "name": "Quoc Lien"
-    },
-    "version": "0.0.1",
-    "type": "module",
-    "scripts": {
-        "build": "echo 'Build script not defined'",
-        "start": "echo 'Start script not defined'"
-      }
-} 
+  "name": "taskhub",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Task Management Application",
+  "author": "Quoc Lien",
+  "license": "MIT",
+  "scripts": {
+    "dev:web": "pnpm --filter @taskhub/web dev",
+    "build:web": "pnpm --filter @taskhub/web build",
+    "start:web": "pnpm --filter @taskhub/web start",
+    "dev:api": "dotnet watch --project apps/api",
+    "build:api": "dotnet build apps/api",
+    "start:api": "dotnet run --project apps/api",
+    "prepare": "husky install"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@9.15.4",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "husky": "^9.0.0",
+    "prettier": "^3.0.0"
+  }
+}

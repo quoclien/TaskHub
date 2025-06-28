@@ -1,49 +1,106 @@
-# TaskHub
+# TaskHub: A Modern Trello-Clone
 
-A simplified hub for task management. Keep your work under control.
+## Overview
 
-## Description
+TaskHub is an open-source Trello-like application designed for efficient task management and real-time collaboration. Built with a modern technology stack, it provides a seamless experience for organizing projects, tracking tasks, and collaborating with your team.
 
-*To be updated*
+This project aims to demonstrate a robust full-stack application with a strong focus on clean architecture, real-time features, and a smooth user experience.
+
+## Features (v1.0)
+
+* **Board Management:** Create, view, and manage project boards.
+* **List & Card Management:** Organize tasks within lists and detail them with cards.
+* **Real-time Updates:** See changes instantly as collaborators interact with boards.
+* **User Authentication:** Secure user login and registration with Google OAuth.
+* **Drag-and-Drop Interface:** Intuitively move cards and lists for easy organization.
+
+## Technology Stack
+
+### Frontend
+* Next.js 15.3 (App Router, React 19)
+* TypeScript 5.6
+* Shadcn/ui & Tailwind CSS
+* TanStack Query v5
+* React Hook Form with Zod
+* @dnd-kit/core
+* NextAuth.js v5
+
+### Backend
+* ASP.NET Core 9 (Minimal APIs)
+* Entity Framework Core 9
+* PostgreSQL (with JSONB)
+* SignalR
+* Serilog
+
+### DevOps & Tools
+* Docker
+* GitHub Actions
+* ESLint 9 & Prettier
+* xUnit, Jest, Playwright
 
 ## Getting Started
 
-### Dependencies
+To get a local copy up and running, follow these simple steps.
 
-* Frontend: React + Vite
-* Backend: .Net Core 8
-* Database: MongoDb
+### Prerequisites
 
-### Installing
+* Node.js (LTS recommended)
+* .NET SDK 9
+* Docker
+* Git
 
-Since it's a monorepo, you will need to install/restore packages in each respective project: frontend and backend. Also a local db connection is used for the time being, so you might want to have it in place before running the project.
-```
-cd frontend
-npm install
-npm run build
-cd ../backend
-dotnet restore
-dotnet build
-```
+### Installation
 
-### Executing program
+1.  **Clone the repository:**
+    ```bash
+    git clone [https://github.com/your-username/TaskHub.git](https://github.com/your-username/TaskHub.git)
+    cd TaskHub
+    ```
 
-Run each respective project:
-```
-dotnet run
-cd ../frontend
-npm run dev
-```
+2.  **Set up environment variables:**
+    Create a `.env.local` file in the `apps/web` directory for frontend environment variables (e.g., `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`).
+    Create an `appsettings.Development.json` file in the `apps/api` directory for backend environment variables (e.g., database connection string).
 
-## Help
+3.  **Start Docker containers (for PostgreSQL):**
+    ```bash
+    docker-compose up -d
+    ```
 
-Feel free to let me know if there's any issue.
+4.  **Run database migrations (for backend):**
+    ```bash
+    # Navigate to the API project directory (e.g., apps/api)
+    dotnet ef database update
+    ```
 
-## Version History
+5.  **Install dependencies and run the applications:**
 
+    ```bash
+    # Install shared packages
+    cd packages/shared
+    npm install # or yarn install
+    cd ../..
+
+    # Install web frontend dependencies and run
+    cd apps/web
+    npm install # or yarn install
+    npm run dev
+    cd ../..
+
+    # Run the API backend
+    cd apps/api
+    dotnet run
+    cd ../..
+    ```
+
+    The frontend will typically run on `http://localhost:3000` and the backend API on `http://localhost:5000` (or as configured).
+
+## Contributing
+
+We welcome contributions! If you'd like to contribute, please fork the repository and create a pull request. We're open to new features, bug fixes, and improvements.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE.md file for details
+This project is open-source and licensed under the [MIT License](LICENSE).
 
-## Acknowledgments
+---
+*TaskHub is an open-source project. This is the initial release (v1.0).*
