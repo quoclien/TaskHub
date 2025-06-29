@@ -1,0 +1,20 @@
+using Microsoft.AspNetCore.Mvc;
+
+namespace TaskHub.Api.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    [Produces("application/json")]
+    public abstract class ApiControllerBase : ControllerBase
+    {
+        protected IActionResult OkOrNotFound<T>(T? result) where T : class
+        {
+            return result == null ? NotFound() : Ok(result);
+        }
+
+        protected IActionResult CreatedAtAction<T>(string actionName, object routeValues, T value)
+        {
+            return CreatedAtAction(actionName, routeValues, value);
+        }
+    }
+}

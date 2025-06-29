@@ -20,7 +20,10 @@
 * **Docker** containerization
 * **GitHub Actions** for CI/CD
 * **ESLint 9** and **Prettier**
-* **xUnit**, **Jest**, **Playwright** for testing
+* **Vitest** for all JavaScript/TypeScript unit, integration, and component tests
+* **@testing-library/react** and **@testing-library/user-event** for React component testing
+* **Playwright** for E2E/browser automation (optional, can be added if/when E2E is prioritized)
+* **xUnit** for .NET backend unit/integration tests
 * **Railway/Render** for deployment
 * **PNPM** as the preferred package management
 
@@ -104,10 +107,23 @@ trello-clone/
 * **Pre-commit hooks** with Husky and lint-staged
 
 ### Testing Strategy
-* **Unit tests** for business logic and utilities
-* **Integration tests** for API endpoints
-* **Component tests** for React components
-* **E2E tests** for critical user journeys
+* **Unit tests** for business logic and utilities (Vitest for JS/TS, xUnit for .NET)
+* **Integration tests** for API endpoints (Vitest for frontend API clients, xUnit for backend)
+* **Component tests** for React components (Vitest + Testing Library)
+* **E2E tests** for critical user journeys (Playwright, optional)
+
+#### Test Maintenance
+- All core utilities, business logic, and components must have corresponding unit tests.
+- Tests must be maintained and extended as code evolves; no code change is "done" until tests pass and are updated as needed.
+- Test files must follow the naming convention: `ComponentName.test.tsx` or `utilName.test.ts`.
+
+#### Test Coverage
+- Aim for high coverage on shared utilities and core business logic.
+- Use coverage reports from Vitest to monitor and improve test quality.
+
+#### .NET/TypeScript Shared Types
+- TypeScript shared package (`packages/shared`) is used by all JS/TS code (frontend, Node-based tooling).
+- .NET backend **cannot directly import TypeScript**. Backend models must be manually kept in sync or generated via OpenAPI/Swagger/codegen if needed. Document any mapping or codegen scripts in `/docs`.
 
 ### Security Considerations
 * **Input validation** with Zod schemas

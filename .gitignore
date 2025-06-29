@@ -158,7 +158,7 @@ Generated\ Files/
 **/[Tt]est[Rr]esult*/
 **/[Bb]uild[Ll]og.*
 **/_ReSharper*/
-**/packages/*
+# **/packages/*
 **/*.VisualState.xml
 **/TestResult.xml
 **/TestResults/

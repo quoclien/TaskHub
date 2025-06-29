@@ -1,3 +1,5 @@
+'use client';
+
 // External dependencies
 import { Button } from "@/components/ui/button";
 
