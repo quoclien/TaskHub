@@ -1,192 +1,142 @@
-## Technology Stack
+# TaskHub Project Overview & Knowledge Base
 
-### Frontend
-* **Next.js 15.3** with App Router and React 19
-* **TypeScript 5.6** (strict mode)
-* **Shadcn/ui** with Tailwind CSS
-* **TanStack Query v5** for server state
-* **React Hook Form** with Zod validation
-* **@dnd-kit/core** for drag-and-drop
-* **NextAuth.js v5** for authentication
-
-### Backend
-* **ASP.NET Core 9** with minimal APIs
-* **Entity Framework Core 9**
-* **PostgreSQL** with JSONB support
-* **SignalR** for real-time features
-* **Serilog** for structured logging
-
-### DevOps & Tools
-* **Docker** containerization
-* **GitHub Actions** for CI/CD
-* **ESLint 9** and **Prettier**
-* **Vitest** for all JavaScript/TypeScript unit, integration, and component tests
-* **@testing-library/react** and **@testing-library/user-event** for React component testing
-* **Playwright** for E2E/browser automation (optional, can be added if/when E2E is prioritized)
-* **xUnit** for .NET backend unit/integration tests
-* **Railway/Render** for deployment
-* **PNPM** as the preferred package management
+*This document is the single source of truth for the TaskHub project. It serves as a living knowledge base, capturing our architecture, development patterns, and key learnings. It must be kept up-to-date.*
 
 ---
-## File Structure
----
 
-trello-clone/
-├── apps/
-│   ├── web/                     # Next.js frontend
-│   │   ├── app/                 # App Router pages
-│   │   ├── components/          # React components
-│   │   ├── lib/                 # Utilities and configurations
-│   │   └── types/               # TypeScript type definitions
-│   └── api/                     # ASP.NET Core backend
-│       ├── Controllers/         # API controllers
-│       ├── Models/              # Entity models
-│       ├── Hubs/                # SignalR hubs
-│       └── Services/            # Business logic
-├── packages/
-│   └── shared/                  # Shared TypeScript types
-├── docker-compose.yml           # Local development environment
-├── .github/workflows/           # CI/CD pipelines
-└── docs/                        # Project documentation
+## 1. Core Principles & AI Collaboration Model
 
+- **AI as the "Driver", Human as the "Navigator"**: We follow a pair-programming model. The user (Navigator) provides direction, defines requirements, and reviews all code. Cascade (Driver) implements the code, runs tests, and performs fixes.
+- **Test-Driven Development (TDD)**: All features start with a failing test. The workflow is: Red (write a failing test) -> Green (write the minimum code to pass) -> Refactor (improve the code).
+- **Incremental Validation**: Complex features are broken down into small, verifiable steps. We run health checks frequently to ensure stability.
+- **Continuous Learning**: This document is our persistent memory. We update it with every new pattern, resolved issue, and architectural decision.
 
 ---
-## System Design and Architecture
----
 
-### Data Model
-* **User**: Authentication and profile information
-* **Board**: Project workspace with members and permissions
-* **List**: Columns within boards (e.g., "To Do", "In Progress")
-* **Card**: Tasks with metadata stored in PostgreSQL JSONB
-* **Comment**: Threaded discussions on cards
+## 2. System Design & Architecture
 
-### Authentication Architecture
-* **NextAuth.js** with Google OAuth provider
-* **JWT tokens** in HTTP-only cookies
-* **Role-based authorization** (Owner, Member, Viewer)
-* **Session management** across frontend and backend
+### 2.1. Tech Stack
 
-### Real-time Collaboration
-* **SignalR hubs** with group-based messaging
-* **Optimistic updates** with conflict resolution
-* **User presence** and typing indicators
-* **Last-writer-wins** concurrency strategy
+- **Frontend**: Next.js 15.3, React 19, TypeScript 5.6, Shadcn/ui, TanStack Query v5, Zod, @dnd-kit, NextAuth.js v5.
+- **Backend**: ASP.NET Core 9, EF Core 9, PostgreSQL, SignalR, Serilog.
+- **DevOps & Tools**: pnpm, Docker, GitHub Actions, ESLint, Prettier, Vitest, xUnit.
 
-### API Design
-* **RESTful endpoints** with OpenAPI documentation
-* **Consistent error handling** and validation
-* **Rate limiting** and security headers
-* **Health check endpoints** for monitoring
+### 2.2. Monorepo & File Structure
 
-### Performance Strategy
-* **Client-side caching** with TanStack Query
-* **Database query optimization** with EF Core
-* **Image optimization** and CDN integration
-* **Code splitting** and lazy loading
+- **Strategy**: We use a `pnpm` workspace monorepo to manage our `apps` and `packages`.
+- **Next.js & TypeScript**: We **do not** use TypeScript Project References (`composite: true`). Instead, we use `transpilePackages` in `next.config.js` to compile workspace packages, ensuring Hot Module Replacement (HMR) works correctly.
+- **Structure Diagram**:
+  ```
+  taskhub/
+  ├── apps/
+  │   ├── web/           # Next.js frontend
+  │   └── api/           # ASP.NET Core backend
+  ├── packages/
+  │   ├── shared/        # Shared TS types (Zod schemas)
+  │   └── ui/            # Shared React components (future)
+  ├── .github/           # CI/CD workflows
+  └── docker-compose.yml # Local development
+  ```
 
----
-## Key Architectural Decisions
----
+### 2.3. Data Model
 
-* **Monorepo Structure**: Single repository for better code organization and recruiter accessibility.
-* **PostgreSQL over MongoDB**: Relational data model suits task management better, with JSONB for flexibility.
-* **Next.js App Router**: Utilizes the latest React patterns with Server Components for SEO and performance.
-* **SignalR over WebSockets**: Provides an integrated real-time solution within the .NET ecosystem.
-* **TanStack Query over Redux**: Modern server state management with built-in caching and synchronization.
-* **Shadcn/ui Components**: Offers production-ready UI components with accessibility built-in.
+- **User**: Authentication and profile information.
+- **Board**: Project workspace with members.
+- **List**: Columns within boards (e.g., "To Do", "In Progress").
+- **Card**: Tasks with metadata stored in PostgreSQL JSONB.
+- **Comment**: Threaded discussions on cards.
 
----
-## Development Guidelines
----
+### 2.4. Authentication & Real-time
 
-### Code Quality
-* **TypeScript strict mode** with exact optional properties
-* **ESLint rules** for consistent code style
-* **Prettier** for automatic formatting
-* **Pre-commit hooks** with Husky and lint-staged
+- **Authentication Flow**: `NextAuth.js` handles the OAuth flow and creates a JWT, which is stored in a secure, HTTP-only cookie. A custom ASP.NET Core middleware validates the JWT on every request and SignalR connection.
+- **Real-time Collaboration**: `SignalR` hubs manage group-based messaging for optimistic updates, user presence, and typing indicators. We use a "last-writer-wins" concurrency strategy.
 
-### Testing Strategy
-* **Unit tests** for business logic and utilities (Vitest for JS/TS, xUnit for .NET)
-* **Integration tests** for API endpoints (Vitest for frontend API clients, xUnit for backend)
-* **Component tests** for React components (Vitest + Testing Library)
-* **E2E tests** for critical user journeys (Playwright, optional)
+### 2.5. API Design & Performance
 
-#### Test Maintenance
-- All core utilities, business logic, and components must have corresponding unit tests.
-- Tests must be maintained and extended as code evolves; no code change is "done" until tests pass and are updated as needed.
-- Test files must follow the naming convention: `ComponentName.test.tsx` or `utilName.test.ts`.
-
-#### Test Coverage
-- Aim for high coverage on shared utilities and core business logic.
-- Use coverage reports from Vitest to monitor and improve test quality.
-
-#### .NET/TypeScript Shared Types
-- TypeScript shared package (`packages/shared`) is used by all JS/TS code (frontend, Node-based tooling).
-- .NET backend **cannot directly import TypeScript**. Backend models must be manually kept in sync or generated via OpenAPI/Swagger/codegen if needed. Document any mapping or codegen scripts in `/docs`.
-
-### Security Considerations
-* **Input validation** with Zod schemas
-* **SQL injection prevention** with EF Core
-* **XSS protection** with Content Security Policy
-* **CORS configuration** for API access
-
-### Performance Targets
-* **First Contentful Paint**: < 1.5s
-* **Largest Contentful Paint**: < 2.5s
-* **Cumulative Layout Shift**: < 0.1
-* **API response time**: < 200ms (95th percentile)
+- **API Design**: We use RESTful endpoints with OpenAPI documentation, consistent error handling, rate limiting, and health check endpoints.
+- **Performance Strategy**: We focus on client-side caching with TanStack Query, EF Core query optimization, image optimization, and code splitting.
+- **Performance Targets**: FCP < 1.5s, LCP < 2.5s, CLS < 0.1, API Response < 200ms (p95).
 
 ---
-## Coding Conventions
+
+## 3. Key Architectural Decisions
+
+- **Monorepo**: For simplified dependency management and code sharing.
+- **PostgreSQL + JSONB**: Combines relational integrity with flexible document storage for card metadata.
+- **Next.js App Router**: To leverage modern React features like Server Components.
+- **SignalR**: For its deep integration within the ASP.NET ecosystem for real-time features.
+- **TanStack Query**: For powerful server-state management, caching, and synchronization.
+
 ---
-### File Naming
-* **React components**: `PascalCase.tsx` (e.g., `BoardCard.tsx`, `UserAvatar.tsx`)
-* **Utilities and hooks**: `camelCase.ts` (e.g., `useAuth.ts`, `formatDate.ts`)
-* **API controllers**: `PascalCase.cs` (e.g., `BoardsController.cs`)
-* **Database models**: `PascalCase.cs` (e.g., `Board.cs`, `Card.cs`)
-* **Test files**: `ComponentName.test.tsx` or `ClassName.test.cs`
 
-### Variable Naming
-* **Constants**: `SCREAMING_SNAKE_CASE` (e.g., `API_BASE_URL`, `MAX_CARDS_PER_LIST`)
-* **Functions**: `camelCase` with verb prefixes (e.g., `getUserBoards`, `createCard`, `validateInput`)
-* **React props**: `camelCase` with descriptive names (e.g., `isLoading`, `onCardMove`, `boardId`)
-* **C# properties**: `PascalCase` (e.g., `CreatedAt`, `BoardId`, `IsArchived`)
-* **Database fields**: `snake_case` in migrations (e.g., `created_at`, `board_id`)
+## 4. Development Guidelines & Conventions
 
-### Component Structure
-1. Imports (external, internal, types)
-2. Types and interfaces
-3. Component function with props destructuring
-4. Custom hooks and state
-5. Event handlers (handle prefix)
-6. Effects and side effects
-7. Render functions (render prefix)
-8. Main JSX return
+### 4.1. Code Quality & Organization
 
-### API Endpoint Naming
-* **RESTful conventions**: `/api/boards/{id}/lists/{listId}/cards`
-* **Actions**: `/api/boards/{id}/members` (POST to add, DELETE to remove)
-* **Bulk operations**: `/api/cards/batch-update`
+- **Quality**: Enforce TypeScript `strict` mode, ESLint rules, and Prettier formatting via pre-commit hooks.
+- **Organization**: Adhere to the Single Responsibility Principle, aim for < 200 lines per file, and use comments only for complex business logic.
 
-### Commit Message Format
-`type(scope): description`
+### 4.2. Testing Strategy
 
-**Examples**:
-* `feat(auth): add Google OAuth integration`
-* `fix(api): resolve card ordering bug`
-* `docs(readme): update setup instructions`
-* `test(boards): add integration tests`
-* `refactor(ui): extract reusable modal component`
+- **TDD**: All new features must begin with a failing test.
+- **Scope**: Unit tests for logic (Vitest/xUnit), component tests for UI (Vitest/Testing Library), and integration tests for API endpoints.
+- **Maintenance**: Tests are a part of the feature. No PR is complete without passing and updated tests. Aim for high coverage on core logic.
 
-### Error Handling
-* **Frontend**: Use **Error Boundaries** and consistent error states.
-* **Backend**: Return structured error responses with **correlation IDs**.
-* **Logging**: Include context with structured data (e.g., `userId`, `boardId`, `action`).
+### 4.3. Security
 
-### Code Organization
-* Max 200 lines per file
-* Single responsibility principle
-* Meaningful function names that describe behavior
-* Comments for complex business logic only
-* Type annotations for all public interfaces
+- **Validation**: Zod for frontend and API contract validation; FluentValidation for backend business logic.
+- **Backend**: Prevent SQL injection with EF Core's parameterized queries.
+- **Frontend**: Implement a strict Content Security Policy (CSP) to prevent XSS.
+
+### 4.4. Conventions
+
+- **File Naming**: `PascalCase.tsx` (Components), `camelCase.ts` (Hooks/Utils).
+- **Commits**: `type(scope): description` (e.g., `feat(api): add card creation endpoint`).
+- **API Endpoints**: RESTful (`/api/boards/{id}/cards`), use nouns, and be consistent.
+- **Shared Types**: The `packages/shared` directory is the source of truth (Zod schemas). The .NET backend models must be manually kept in sync.
+
+---
+
+## 5. Knowledge Base: Resolved Issues & Error Patterns
+
+*This section is a log of problems we've solved. Review this to avoid repeating past mistakes.*
+
+### 5.1. Resolved Issues
+
+| Problem | Solution & Context |
+| :--- | :--- |
+| **Vite/Vitest Version Mismatch** | **Solution**: Standardized all Vite-related dependencies in the root `package.json`. **Context**: Inconsistent versions caused cryptic build and test failures. Centralizing versions with `pnpm` workspaces resolved this. |
+| *Add new issues here* | *...as they are resolved* |
+
+### 5.2. Known Error Patterns & Fixes
+
+| Error Message / Pattern | Common Cause & Fix |
+| :--- | :--- |
+| **`The type or namespace name '...' could not be found` in C#** | **Cause**: Missing `using` statement. **Fix**: Ensure `using Microsoft.AspNetCore.Mvc;` in controllers, `using Microsoft.EntityFrameworkCore;` in DbContext files, etc. |
+| **Next.js Hydration Error** | **Cause**: Mismatch between server-rendered and client-rendered HTML. **Fix**: Use `useEffect` for client-side-only code or dynamic imports with `ssr: false`. |
+| **EF Core Migration PK Error** | **Cause**: An entity is missing a primary key. **Fix**: Ensure every entity has a property like `public int Id { get; set; }`. |
+
+---
+
+## 6. Session Journal (Template)
+
+*Use a temporary, git-ignored file (e.g., `session-log.md`) to document work-in-progress during a development session.*
+
+```markdown
+### Date: YYYY-MM-DD
+
+**Goal**: [Briefly describe the main objective for the session]
+
+**Key Steps & Learnings**:
+- **Step 1: [Action taken]**
+  - **Learning/Decision**: [What was learned? What decision was made?]
+
+- **Step 2: [Action taken]**
+  - **Error Encountered**: [Paste error message]
+  - **Resolution**: [How was it fixed? Add to Knowledge Base if applicable.]
+
+**Session Summary**:
+- **Accomplishments**: [What was completed?]
+- **New Patterns**: [Any new reusable patterns discovered?]
+- **Next Steps**: [What's the plan for the next session?]
+```

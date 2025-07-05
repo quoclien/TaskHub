@@ -232,3 +232,6 @@ appsettings.Local.json
 **/bin/Release/
 **/obj/Debug/
 **/obj/Release/
+
+# Misc
+.project-guidelines
