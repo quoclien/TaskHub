@@ -1,0 +1,90 @@
+# Build outputs
+[Dd]ebug/
+[Rr]elease/
+[Bb]in/
+[Oo]bj/
+
+# IDE files
+.vs/
+.vscode/
+*.user
+*.userosscache
+*.sln.docstates
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+msbuild.log
+msbuild.err
+msbuild.wrn
+
+# Visual Studio cache/options directory
+.vs/
+
+# MSTest test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# Local development settings
+appsettings.Development.json
+
+# Secrets
+appsettings.*.json
+secrets.json
+
+# Docker
+.dockerignore
+Dockerfile*
+docker-compose*
+.docker
+
+# Logs
+*.log
+
+# Local development
+.vscode/
+.idea/
+*.userprefs
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# NuGet
+**/[Pp]ackages/*
+**/packages/*
+!**/[Pp]ackages/build/
+
+# Local development
+.vscode/
+.idea/
+*.userprefs
+
+# Test results
+TestResults/
+
+# Code coverage
+coverage/
+
+# Build server
+.azds/
+
+# VS Code
+.history/

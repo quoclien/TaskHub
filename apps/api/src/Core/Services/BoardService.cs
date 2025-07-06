@@ -6,219 +6,200 @@ using AutoMapper;
 using Microsoft.Extensions.Logging;
 using TaskHub.Api.Core.Interfaces;
 using TaskHub.Api.Core.Interfaces.Repositories;
-using TaskHub.Api.Shared.Models;
-using TaskHub.Api.Shared.Models.Dtos;
+using TaskHub.Api.Models.Dtos.Boards;
+using TaskHub.Api.Models.Entities.Enums;
+using BoardEntity = TaskHub.Api.Models.Entities.Boards.Board;
+using BoardMemberEntity = TaskHub.Api.Models.Entities.Boards.BoardMember;
 
 namespace TaskHub.Api.Core.Services
 {
     public class BoardService : IBoardService
     {
         private readonly IBoardRepository _boardRepository;
+        private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<BoardService> _logger;
 
         public BoardService(
             IBoardRepository boardRepository,
+            IUserRepository userRepository,
             IMapper mapper,
             ILogger<BoardService> logger)
         {
             _boardRepository = boardRepository ?? throw new ArgumentNullException(nameof(boardRepository));
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<BoardDto> CreateBoardAsync(CreateBoardDto createBoardDto, string userId)
+        public async Task<BoardDto> CreateBoardAsync(CreateBoardDto createBoardDto, Guid userId)
         {
-            try
-            {
-                var board = _mapper.Map<Board>(createBoardDto);
-                board.CreatedBy = userId;
-                board.Members.Add(new BoardMember
-                {
-                    UserId = userId,
-                    Role = UserRole.Owner,
-                    JoinedAt = DateTime.UtcNow
-                });
+            if (createBoardDto == null)
+                throw new ArgumentNullException(nameof(createBoardDto));
 
-                var createdBoard = await _boardRepository.CreateAsync(board);
-                return _mapper.Map<BoardDto>(createdBoard);
-            }
-            catch (Exception ex)
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
             {
-                _logger.LogError(ex, "Error creating board for user {UserId}", userId);
-                throw;
+                throw new KeyNotFoundException($"User with ID {userId} not found.");
             }
+
+            var board = _mapper.Map<BoardEntity>(createBoardDto);
+            board.OwnerId = userId;
+
+            board.BoardMembers.Add(new BoardMemberEntity
+            {
+                UserId = userId,
+                Role = BoardRole.Owner,
+                JoinedAt = DateTime.UtcNow
+            });
+
+            await _boardRepository.AddAsync(board);
+            await _boardRepository.SaveChangesAsync();
+
+            return _mapper.Map<BoardDto>(board);
         }
 
-        public async Task<BoardDto?> GetBoardByIdAsync(string id, string userId)
+        public async Task<BoardDto?> GetBoardByIdAsync(Guid id, Guid userId)
         {
-            try
-            {
-                var hasAccess = await _boardRepository.UserHasAccess(id, userId);
-                if (!hasAccess)
-                {
-                    return null;
-                }
+            var board = await _boardRepository.GetByIdWithDetailsAsync(id);
+            if (board == null)
+                return null;
 
-                var board = await _boardRepository.GetByIdAsync(id);
-                return board != null ? _mapper.Map<BoardDto>(board) : null;
-            }
-            catch (Exception ex)
+            if (!board.IsPublic && !await _boardRepository.IsBoardMemberAsync(id, userId))
             {
-                _logger.LogError(ex, "Error retrieving board {BoardId} for user {UserId}", id, userId);
-                throw;
+                throw new UnauthorizedAccessException("You don't have access to this board.");
             }
+
+            return _mapper.Map<BoardDto>(board);
         }
 
-        public async Task<IEnumerable<BoardDto>> GetUserBoardsAsync(string userId)
+        public async Task<IEnumerable<BoardDto>> GetUserBoardsAsync(Guid userId)
         {
-            try
-            {
-                var boards = await _boardRepository.GetBoardsByUserAsync(userId);
-                return _mapper.Map<IEnumerable<BoardDto>>(boards);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving boards for user {UserId}", userId);
-                throw;
-            }
+            var boards = await _boardRepository.GetUserBoardsAsync(userId);
+            return _mapper.Map<IEnumerable<BoardDto>>(boards);
         }
 
-        public async Task<bool> UpdateBoardAsync(string id, UpdateBoardDto updateBoardDto, string userId)
+        public async Task<bool> UpdateBoardAsync(Guid id, UpdateBoardDto updateBoardDto, Guid userId)
         {
-            try
+            var hasAccess = await _boardRepository.UserHasAccess(id, userId, BoardRole.Owner);
+            if (!hasAccess)
             {
-                var hasAccess = await _boardRepository.UserHasAccess(id, userId, UserRole.Owner);
-                if (!hasAccess)
-                {
-                    return false;
-                }
-
-                var board = await _boardRepository.GetByIdAsync(id);
-                if (board == null)
-                {
-                    return false;
-                }
-
-                _mapper.Map(updateBoardDto, board);
-                board.UpdatedAt = DateTime.UtcNow;
-
-                return await _boardRepository.UpdateAsync(board);
+                throw new UnauthorizedAccessException("You do not have permission to update this board.");
             }
-            catch (Exception ex)
+
+            var board = await _boardRepository.GetByIdAsync(id);
+            if (board == null)
             {
-                _logger.LogError(ex, "Error updating board {BoardId} by user {UserId}", id, userId);
-                throw;
+                return false;
             }
+
+            _mapper.Map(updateBoardDto, board);
+            board.UpdatedAt = DateTime.UtcNow;
+
+            _boardRepository.Update(board);
+            await _boardRepository.SaveChangesAsync();
+            return true;
         }
 
-        public async Task<bool> DeleteBoardAsync(string id, string userId)
+        public async Task<bool> DeleteBoardAsync(Guid id, Guid userId)
         {
-            try
-            {
-                var hasAccess = await _boardRepository.UserHasAccess(id, userId, UserRole.Owner);
-                if (!hasAccess)
-                {
-                    return false;
-                }
+            var board = await _boardRepository.GetByIdAsync(id);
+            if (board == null)
+                return false;
 
-                return await _boardRepository.DeleteAsync(id);
-            }
-            catch (Exception ex)
+            if (board.OwnerId != userId)
             {
-                _logger.LogError(ex, "Error deleting board {BoardId} by user {UserId}", id, userId);
-                throw;
+                throw new UnauthorizedAccessException("Only the board owner can delete the board.");
             }
+
+            _boardRepository.Delete(board);
+            await _boardRepository.SaveChangesAsync();
+            return true;
         }
 
-        public async Task<bool> AddBoardMemberAsync(string boardId, string userId, string currentUserId, UserRole role = UserRole.Member)
+        public async Task<bool> AddBoardMemberAsync(Guid boardId, Guid userId, Guid currentUserId, BoardRole role = BoardRole.Member)
         {
-            try
+            var hasAccess = await _boardRepository.UserHasAccess(boardId, currentUserId, BoardRole.Owner);
+            if (!hasAccess)
             {
-                // Only board owners can add members
-                var hasAccess = await _boardRepository.UserHasAccess(boardId, currentUserId, UserRole.Owner);
-                if (!hasAccess)
-                {
-                    return false;
-                }
-
-                var member = new BoardMember
-                {
-                    UserId = userId,
-                    Role = role,
-                    JoinedAt = DateTime.UtcNow
-                };
-
-                return await _boardRepository.AddMemberAsync(boardId, member);
+                throw new UnauthorizedAccessException("Only board admins can add members.");
             }
-            catch (Exception ex)
+
+            if (await _boardRepository.IsBoardMemberAsync(boardId, userId))
             {
-                _logger.LogError(ex, "Error adding member {UserId} to board {BoardId} by user {CurrentUserId}", 
-                    userId, boardId, currentUserId);
-                throw;
+                throw new InvalidOperationException("User is already a member of this board.");
             }
+
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+            {
+                throw new KeyNotFoundException($"User with ID {userId} not found.");
+            }
+
+            var member = new BoardMemberEntity
+            {
+                BoardId = boardId,
+                UserId = userId,
+                Role = role,
+                JoinedAt = DateTime.UtcNow
+            };
+
+            await _boardRepository.AddBoardMemberAsync(member);
+            await _boardRepository.SaveChangesAsync();
+            return true;
         }
 
-        public async Task<bool> RemoveBoardMemberAsync(string boardId, string userId, string currentUserId)
+        public async Task<bool> RemoveBoardMemberAsync(Guid boardId, Guid userId, Guid currentUserId)
         {
-            try
+            var hasAccess = await _boardRepository.UserHasAccess(boardId, currentUserId, BoardRole.Owner);
+            if (!hasAccess)
             {
-                // Only board owners can remove members
-                var hasAccess = await _boardRepository.UserHasAccess(boardId, currentUserId, UserRole.Owner);
-                if (!hasAccess)
-                {
-                    return false;
-                }
-
-                // Prevent removing yourself if you're the last owner
-                if (userId == currentUserId)
-                {
-                    var board = await _boardRepository.GetByIdAsync(boardId);
-                    if (board != null && board.Members.Count(m => m.Role == UserRole.Owner) <= 1)
-                    {
-                        return false; // Can't remove the last owner
-                    }
-                }
-
-                return await _boardRepository.RemoveMemberAsync(boardId, userId);
+                throw new UnauthorizedAccessException("Only board admins can remove members.");
             }
-            catch (Exception ex)
+
+            if (userId == currentUserId)
             {
-                _logger.LogError(ex, "Error removing member {UserId} from board {BoardId} by user {CurrentUserId}", 
-                    userId, boardId, currentUserId);
-                throw;
+                var board = await _boardRepository.GetByIdWithDetailsAsync(boardId);
+                if (board != null && board.BoardMembers.Count(m => m.Role == BoardRole.Owner) <= 1)
+                {
+                    throw new InvalidOperationException("Cannot remove the last admin of the board.");
+                }
             }
+
+            var member = await _boardRepository.GetBoardMemberAsync(boardId, userId);
+            if (member == null)
+            {
+                return false;
+            }
+
+            _boardRepository.RemoveBoardMember(member);
+            await _boardRepository.SaveChangesAsync();
+            return true;
         }
 
-        public async Task<bool> UpdateBoardMemberRoleAsync(string boardId, string userId, string currentUserId, UserRole newRole)
+        public async Task<bool> UpdateBoardMemberRoleAsync(Guid boardId, Guid userId, Guid currentUserId, BoardRole newRole)
         {
-            try
+            var hasAccess = await _boardRepository.UserHasAccess(boardId, currentUserId, BoardRole.Owner);
+            if (!hasAccess)
             {
-                // Only board owners can update member roles
-                var hasAccess = await _boardRepository.UserHasAccess(boardId, currentUserId, UserRole.Owner);
-                if (!hasAccess)
-                {
-                    return false;
-                }
-
-                // Prevent changing your own role if you're the last owner
-                if (userId == currentUserId && newRole != UserRole.Owner)
-                {
-                    var board = await _boardRepository.GetByIdAsync(boardId);
-                    if (board != null && board.Members.Count(m => m.Role == UserRole.Owner) <= 1)
-                    {
-                        return false; // Can't change role of the last owner
-                    }
-                }
-
-                return await _boardRepository.UpdateMemberRoleAsync(boardId, userId, newRole);
+                throw new UnauthorizedAccessException("Only board admins can change member roles.");
             }
-            catch (Exception ex)
+
+            if (userId == currentUserId)
             {
-                _logger.LogError(ex, "Error updating role for member {UserId} in board {BoardId} by user {CurrentUserId}", 
-                    userId, boardId, currentUserId);
-                throw;
+                throw new InvalidOperationException("Users cannot change their own role.");
             }
+
+            var member = await _boardRepository.GetBoardMemberAsync(boardId, userId);
+            if (member == null)
+            {
+                return false;
+            }
+
+            member.Role = newRole;
+            _boardRepository.UpdateBoardMember(member);
+            await _boardRepository.SaveChangesAsync();
+            return true;
         }
     }
 }
