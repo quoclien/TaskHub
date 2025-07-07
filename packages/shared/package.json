@@ -18,7 +18,6 @@
     "test:coverage": "vitest run --coverage",
     "prepublishOnly": "pnpm run build",
     "prepare": "pnpm run build",
-    "pre-commit": "pnpm run lint && pnpm run test"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

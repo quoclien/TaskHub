@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using TaskHub.Api.Core.Interfaces;
 using TaskHub.Api.Models.Dtos.Lists;
 
@@ -23,10 +18,6 @@ namespace TaskHub.Api.Controllers
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        /// <summary>
-        /// Gets all lists for a specific board
-        /// </summary>
-        /// <param name="boardId">The ID of the board</param>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ListDto>))]
         public async Task<IActionResult> GetLists(Guid boardId)
@@ -43,11 +34,6 @@ namespace TaskHub.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Gets a specific list by ID
-        /// </summary>
-        /// <param name="boardId">The ID of the board</param>
-        /// <param name="id">The ID of the list</param>
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ListDto))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -69,11 +55,6 @@ namespace TaskHub.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Creates a new list in the specified board
-        /// </summary>
-        /// <param name="boardId">The ID of the board</param>
-        /// <param name="createListDto">The list data</param>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ListDto))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -100,12 +81,6 @@ namespace TaskHub.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Updates an existing list
-        /// </summary>
-        /// <param name="boardId">The ID of the board</param>
-        /// <param name="id">The ID of the list to update</param>
-        /// <param name="updateListDto">The updated list data</param>
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -133,11 +108,6 @@ namespace TaskHub.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Deletes a list
-        /// </summary>
-        /// <param name="boardId">The ID of the board</param>
-        /// <param name="id">The ID of the list to delete</param>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

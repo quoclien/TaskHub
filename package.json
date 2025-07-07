@@ -9,9 +9,9 @@
     "dev:web": "pnpm --filter @taskhub/web dev",
     "build:web": "pnpm --filter @taskhub/web build",
     "start:web": "pnpm --filter @taskhub/web start",
-    "dev:api": "dotnet watch --project apps/api",
-    "build:api": "dotnet build apps/api",
-    "start:api": "dotnet run --project apps/api"
+    "dev:api": "dotnet watch --project apps/api/TaskHub.Api.csproj",
+    "build:api": "dotnet build apps/api/TaskHub.Api.csproj",
+    "start:api": "dotnet run --project apps/api/TaskHub.Api.csproj"
   },
   "husky": {
     "hooks": {

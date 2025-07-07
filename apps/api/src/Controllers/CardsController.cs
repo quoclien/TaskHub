@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using TaskHub.Api.Core.Interfaces;
 using TaskHub.Api.Models.Dtos.Cards;
 
@@ -23,11 +18,6 @@ namespace TaskHub.Api.Controllers
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        /// <summary>
-        /// Gets all cards for a specific list
-        /// </summary>
-        /// <param name="boardId">The ID of the board</param>
-        /// <param name="listId">The ID of the list</param>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<CardDto>))]
         public async Task<IActionResult> GetCards(Guid boardId, Guid listId)
@@ -44,12 +34,6 @@ namespace TaskHub.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Gets a specific card by ID
-        /// </summary>
-        /// <param name="boardId">The ID of the board</param>
-        /// <param name="listId">The ID of the list</param>
-        /// <param name="id">The ID of the card</param>
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CardDto))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -71,12 +55,6 @@ namespace TaskHub.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Creates a new card in the specified list
-        /// </summary>
-        /// <param name="boardId">The ID of the board</param>
-        /// <param name="listId">The ID of the list</param>
-        /// <param name="createCardDto">The card data</param>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CardDto))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -103,13 +81,6 @@ namespace TaskHub.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Updates an existing card
-        /// </summary>
-        /// <param name="boardId">The ID of the board</param>
-        /// <param name="listId">The ID of the list</param>
-        /// <param name="id">The ID of the card to update</param>
-        /// <param name="updateCardDto">The updated card data</param>
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -137,13 +108,6 @@ namespace TaskHub.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Moves a card to a different list
-        /// </summary>
-        /// <param name="boardId">The ID of the board</param>
-        /// <param name="listId">The ID of the current list</param>
-        /// <param name="id">The ID of the card to move</param>
-        /// <param name="moveCardDto">The move operation data</param>
         [HttpPost("{id}/move")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -171,12 +135,6 @@ namespace TaskHub.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Deletes a card
-        /// </summary>
-        /// <param name="boardId">The ID of the board</param>
-        /// <param name="listId">The ID of the list</param>
-        /// <param name="id">The ID of the card to delete</param>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
