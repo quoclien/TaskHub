@@ -17,6 +17,5 @@ namespace TaskHub.Api.Core.Interfaces.Repositories
         Task AddBoardMemberAsync(BoardMemberEntity member);
         void RemoveBoardMember(BoardMemberEntity member);
         void UpdateBoardMember(BoardMemberEntity member);
-        Task<int> SaveChangesAsync();
     }
 }

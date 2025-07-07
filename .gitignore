@@ -65,7 +65,7 @@ pnpm-debug.log*
 *.local
 
 # PostgreSQL
-data/
+data/postgres/
 *.sqlite3
 
 # Docker

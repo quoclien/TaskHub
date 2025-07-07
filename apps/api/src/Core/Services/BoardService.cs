@@ -13,7 +13,7 @@ using BoardMemberEntity = TaskHub.Api.Models.Entities.Boards.BoardMember;
 
 namespace TaskHub.Api.Core.Services
 {
-    public class BoardService : IBoardService
+    public class BoardService : BaseService, IBoardService
     {
         private readonly IBoardRepository _boardRepository;
         private readonly IUserRepository _userRepository;
@@ -24,7 +24,9 @@ namespace TaskHub.Api.Core.Services
             IBoardRepository boardRepository,
             IUserRepository userRepository,
             IMapper mapper,
-            ILogger<BoardService> logger)
+            ILogger<BoardService> logger,
+            IUnitOfWork unitOfWork) 
+            : base(unitOfWork)
         {
             _boardRepository = boardRepository ?? throw new ArgumentNullException(nameof(boardRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
@@ -54,7 +56,7 @@ namespace TaskHub.Api.Core.Services
             });
 
             await _boardRepository.AddAsync(board);
-            await _boardRepository.SaveChangesAsync();
+            await SaveChangesAsync();
 
             return _mapper.Map<BoardDto>(board);
         }
@@ -97,7 +99,7 @@ namespace TaskHub.Api.Core.Services
             board.UpdatedAt = DateTime.UtcNow;
 
             _boardRepository.Update(board);
-            await _boardRepository.SaveChangesAsync();
+            await SaveChangesAsync();
             return true;
         }
 
@@ -113,7 +115,7 @@ namespace TaskHub.Api.Core.Services
             }
 
             _boardRepository.Delete(board);
-            await _boardRepository.SaveChangesAsync();
+            await SaveChangesAsync();
             return true;
         }
 
@@ -145,7 +147,7 @@ namespace TaskHub.Api.Core.Services
             };
 
             await _boardRepository.AddBoardMemberAsync(member);
-            await _boardRepository.SaveChangesAsync();
+            await SaveChangesAsync();
             return true;
         }
 
@@ -173,7 +175,7 @@ namespace TaskHub.Api.Core.Services
             }
 
             _boardRepository.RemoveBoardMember(member);
-            await _boardRepository.SaveChangesAsync();
+            await SaveChangesAsync();
             return true;
         }
 
@@ -198,7 +200,7 @@ namespace TaskHub.Api.Core.Services
 
             member.Role = newRole;
             _boardRepository.UpdateBoardMember(member);
-            await _boardRepository.SaveChangesAsync();
+            await SaveChangesAsync();
             return true;
         }
     }

@@ -1,5 +1,6 @@
 using System;
 using System.Data.Common;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using TaskHub.Api.Infrastructure.Data;
 using Microsoft.Extensions.Hosting;
 using TaskHub.Api;
+using Xunit;
 
 namespace TaskHub.Api.IntegrationTests
 {
@@ -16,25 +18,28 @@ namespace TaskHub.Api.IntegrationTests
     {
         private DbConnection _connection;
 
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        public CustomWebApplicationFactory()
         {
-            // Create an in-memory SQLite database for testing
+            // Create and open SQLite in-memory connection
             _connection = new SqliteConnection("DataSource=:memory:");
             _connection.Open();
+        }
 
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        {
             builder.ConfigureServices(services =>
             {
                 // Remove the app's ApplicationDbContext registration
                 var dbContextDescriptor = services.SingleOrDefault(
-                    d => d.ServiceType == typeof(DbContextOptions<TrelloDbContext>));
+                    d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
 
                 if (dbContextDescriptor != null)
                 {
                     services.Remove(dbContextDescriptor);
                 }
 
-                // Add ApplicationDbContext using an in-memory database for testing
-                services.AddDbContext<TrelloDbContext>(options =>
+                // Add ApplicationDbContext using SQLite in-memory database for testing
+                services.AddDbContext<ApplicationDbContext>((_, options) =>
                 {
                     options.UseSqlite(_connection);
                 });
@@ -42,24 +47,24 @@ namespace TaskHub.Api.IntegrationTests
                 // Build the service provider
                 var sp = services.BuildServiceProvider();
 
-                // Create a scope to obtain a reference to the database context
+                // Create a scope to initialize the database
                 using (var scope = sp.CreateScope())
                 {
                     var scopedServices = scope.ServiceProvider;
-                    var db = scopedServices.GetRequiredService<TrelloDbContext>();
+                    var db = scopedServices.GetRequiredService<ApplicationDbContext>();
                     var logger = scopedServices.GetRequiredService<ILogger<CustomWebApplicationFactory>>();
-
-                    // Ensure the database is created
-                    db.Database.EnsureCreated();
 
                     try
                     {
-                        // Seed the database with test data
-                        DataSeeder.SeedTestData(db).Wait();
+                        // Ensure the database is created and migrated
+                        db.Database.EnsureCreated();
+                        
+                        // Optional: Seed test data if needed
+                        // await SeedTestData(db);
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError(ex, "An error occurred seeding the database with test messages. Error: {Message}", ex.Message);
+                        logger.LogError(ex, "An error occurred setting up the test database. Error: {Message}", ex.Message);
                     }
                 }
             });
@@ -67,29 +72,35 @@ namespace TaskHub.Api.IntegrationTests
 
         protected override IHost CreateHost(IHostBuilder builder)
         {
-            // Create the host for TestServer
             var host = base.CreateHost(builder);
             
-            // Ensure the database is created and seeded
             using (var scope = host.Services.CreateScope())
             {
-                var services = scope.ServiceProvider;
-                var db = services.GetRequiredService<TrelloDbContext>();
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 db.Database.EnsureCreated();
-                DataSeeder.SeedTestData(db).Wait();
             }
             
             return host;
         }
 
+        public async Task ResetDatabaseAsync()
+        {
+            using (var scope = Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                await db.Database.EnsureDeletedAsync();
+                await db.Database.EnsureCreatedAsync();
+            }
+        }
+
         protected override void Dispose(bool disposing)
         {
+            base.Dispose(disposing);
+            
             if (disposing)
             {
                 _connection?.Dispose();
             }
-            
-            base.Dispose(disposing);
         }
     }
 }

@@ -9,7 +9,9 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using TaskHub.Api.Infrastructure.Data;
-using TaskHub.Api.Models.Entities;
+using TaskHub.Api.Models.Dtos.Boards;
+using TaskHub.Api.Models.Entities.Boards;
+using Board = TaskHub.Api.Models.Entities.Boards.Board;
 using Xunit;
 
 namespace TaskHub.Api.IntegrationTests.Controllers
@@ -17,7 +19,7 @@ namespace TaskHub.Api.IntegrationTests.Controllers
     public class BoardsControllerTests : IClassFixture<CustomWebApplicationFactory>, IDisposable
     {
         private readonly HttpClient _client;
-        private readonly TrelloDbContext _dbContext;
+        private readonly ApplicationDbContext _dbContext;
         private readonly CustomWebApplicationFactory _factory;
 
         public BoardsControllerTests(CustomWebApplicationFactory factory)
@@ -29,7 +31,7 @@ namespace TaskHub.Api.IntegrationTests.Controllers
             });
 
             var scope = factory.Services.CreateScope();
-            _dbContext = scope.ServiceProvider.GetRequiredService<TrelloDbContext>();
+            _dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         }
 
         [Fact]
@@ -61,6 +63,7 @@ namespace TaskHub.Api.IntegrationTests.Controllers
             Assert.NotNull(result);
             Assert.Equal(board.Id, result.Id);
             Assert.Equal(board.Title, result.Title);
+            Assert.Equal(board.IsPublic, result.IsPublic);
         }
 
         [Fact]
@@ -100,7 +103,7 @@ namespace TaskHub.Api.IntegrationTests.Controllers
         public async Task CreateBoard_WithInvalidData_ReturnsBadRequest()
         {
             // Arrange
-            var createBoardDto = new CreateBoardDto { Title = string.Empty }; // Invalid: Title is required
+            var createBoardDto = new CreateBoardDto { Title = string.Empty, IsPublic = true }; // Invalid: Title is required
 
             // Act
             var response = await _client.PostAsJsonAsync("/api/boards", createBoardDto);
@@ -120,7 +123,6 @@ namespace TaskHub.Api.IntegrationTests.Controllers
             var updateBoardDto = new UpdateBoardDto 
             { 
                 Title = "Updated Title",
-                Description = "Updated Description",
                 IsPublic = false
             };
 
@@ -134,7 +136,6 @@ namespace TaskHub.Api.IntegrationTests.Controllers
             var updatedBoard = await _dbContext.Boards.FindAsync(board.Id);
             Assert.NotNull(updatedBoard);
             Assert.Equal(updateBoardDto.Title, updatedBoard.Title);
-            Assert.Equal(updateBoardDto.Description, updatedBoard.Description);
             Assert.Equal(updateBoardDto.IsPublic, updatedBoard.IsPublic);
         }
 

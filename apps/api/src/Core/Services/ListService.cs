@@ -13,7 +13,7 @@ using ListEntity = TaskHub.Api.Models.Entities.Lists.List;
 
 namespace TaskHub.Api.Core.Services
 {
-    public class ListService : IListService
+    public class ListService : BaseService, IListService
     {
         private readonly IListRepository _listRepository;
         private readonly IBoardRepository _boardRepository;
@@ -26,7 +26,9 @@ namespace TaskHub.Api.Core.Services
             IBoardRepository boardRepository,
             ICardRepository cardRepository,
             IMapper mapper,
-            ILogger<ListService> logger)
+            ILogger<ListService> logger,
+            IUnitOfWork unitOfWork) 
+            : base(unitOfWork)
         {
             _listRepository = listRepository ?? throw new ArgumentNullException(nameof(listRepository));
             _boardRepository = boardRepository ?? throw new ArgumentNullException(nameof(boardRepository));
@@ -79,13 +81,13 @@ namespace TaskHub.Api.Core.Services
 
             // Save the list
             await _listRepository.AddAsync(list);
-            await _listRepository.UnitOfWork.SaveChangesAsync();
+            await SaveChangesAsync();
 
             // Reorder other lists if necessary
             if (position <= maxPosition)
             {
                 await _listRepository.ReorderListsAfterInsertion(boardId, position);
-                await _listRepository.UnitOfWork.SaveChangesAsync();
+                await SaveChangesAsync();
             }
 
             return _mapper.Map<ListDto>(list);
@@ -153,7 +155,7 @@ namespace TaskHub.Api.Core.Services
                 }
             }
 
-            await _listRepository.UnitOfWork.SaveChangesAsync();
+            await SaveChangesAsync();
         }
 
         public async Task DeleteListAsync(Guid id)
@@ -171,11 +173,11 @@ namespace TaskHub.Api.Core.Services
 
             // Delete the list
             _listRepository.Delete(list);
-            await _listRepository.UnitOfWork.SaveChangesAsync();
+            await SaveChangesAsync();
 
             // Reorder remaining lists
             await _listRepository.ReorderListsAfterDeletion(boardId, position);
-            await _listRepository.UnitOfWork.SaveChangesAsync();
+            await SaveChangesAsync();
         }
 
         private async Task ReorderLists(Guid boardId, int oldPosition, int newPosition)
@@ -206,7 +208,7 @@ namespace TaskHub.Api.Core.Services
                 }
             }
 
-            await _listRepository.UnitOfWork.SaveChangesAsync();
+            await SaveChangesAsync();
         }
 
         private async Task ReorderListsAfterDeletion(Guid boardId, int deletedPosition)
@@ -218,7 +220,7 @@ namespace TaskHub.Api.Core.Services
                 _listRepository.Update(list);
             }
 
-            await _listRepository.UnitOfWork.SaveChangesAsync();
+            await SaveChangesAsync();
         }
     }
 }

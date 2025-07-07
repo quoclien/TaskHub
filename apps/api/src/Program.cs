@@ -18,6 +18,7 @@ using TaskHub.Api.Common.Swagger;
 using TaskHub.Api.Core.Interfaces;
 using TaskHub.Api.Core.Interfaces.Repositories;
 using TaskHub.Api.Core.Services;
+
 using TaskHub.Api.Infrastructure.Data;
 using TaskHub.Api.Infrastructure.Data.Repositories;
 
@@ -168,3 +169,6 @@ app.MapControllers();
 app.MapHealthChecks("/health");
 
 app.Run();
+
+// Make the implicit Program class public so it can be referenced by test projects
+public partial class Program { }

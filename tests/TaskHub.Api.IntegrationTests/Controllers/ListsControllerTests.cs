@@ -9,7 +9,12 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using TaskHub.Api.Infrastructure.Data;
-using TaskHub.Api.Models.Entities;
+using TaskHub.Api.Models.Dtos.Boards;
+using TaskHub.Api.Models.Dtos.Lists;
+using TaskHub.Api.Models.Entities.Boards;
+using TaskHub.Api.Models.Entities.Lists;
+using List = TaskHub.Api.Models.Entities.Lists.List;
+using Board = TaskHub.Api.Models.Entities.Boards.Board;
 using Xunit;
 
 namespace TaskHub.Api.IntegrationTests.Controllers
@@ -17,7 +22,7 @@ namespace TaskHub.Api.IntegrationTests.Controllers
     public class ListsControllerTests : IClassFixture<CustomWebApplicationFactory>, IDisposable
     {
         private readonly HttpClient _client;
-        private readonly TrelloDbContext _dbContext;
+        private readonly ApplicationDbContext _dbContext;
         private readonly CustomWebApplicationFactory _factory;
         private readonly Board _testBoard;
 
@@ -30,10 +35,19 @@ namespace TaskHub.Api.IntegrationTests.Controllers
             });
 
             var scope = factory.Services.CreateScope();
-            _dbContext = scope.ServiceProvider.GetRequiredService<TrelloDbContext>();
+            _dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             
             // Create a test board for list tests
-            _testBoard = TestDataGenerator.GenerateTestBoard();
+            _testBoard = new Board
+            {
+                Id = Guid.NewGuid(),
+                Title = "Test Board",
+                IsPublic = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                OwnerId = Guid.NewGuid()
+            };
+
             _dbContext.Boards.Add(_testBoard);
             _dbContext.SaveChanges();
         }
@@ -42,7 +56,16 @@ namespace TaskHub.Api.IntegrationTests.Controllers
         public async Task GetLists_WithValidBoardId_ReturnsSuccess()
         {
             // Arrange
-            var list = TestDataGenerator.GenerateTestList(_testBoard.Id);
+            var list = new List
+            {
+                Id = Guid.NewGuid(),
+                Title = "Test List",
+                Position = 0,
+                BoardId = _testBoard.Id,
+                Board = _testBoard, // Set the required navigation property
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
             _dbContext.Lists.Add(list);
             await _dbContext.SaveChangesAsync();
 
@@ -61,7 +84,16 @@ namespace TaskHub.Api.IntegrationTests.Controllers
         public async Task GetList_WithValidId_ReturnsList()
         {
             // Arrange
-            var list = TestDataGenerator.GenerateTestList(_testBoard.Id);
+            var list = new List
+            {
+                Id = Guid.NewGuid(),
+                Title = "Test List",
+                Position = 0,
+                BoardId = _testBoard.Id,
+                Board = _testBoard, // Set the required navigation property
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
             _dbContext.Lists.Add(list);
             await _dbContext.SaveChangesAsync();
 
@@ -103,7 +135,16 @@ namespace TaskHub.Api.IntegrationTests.Controllers
         public async Task UpdateList_WithValidData_ReturnsNoContent()
         {
             // Arrange
-            var list = TestDataGenerator.GenerateTestList(_testBoard.Id);
+            var list = new List
+            {
+                Id = Guid.NewGuid(),
+                Title = "Test List",
+                Position = 0,
+                BoardId = _testBoard.Id,
+                Board = _testBoard, // Set the required navigation property
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
             _dbContext.Lists.Add(list);
             await _dbContext.SaveChangesAsync();
 
@@ -154,10 +195,10 @@ namespace TaskHub.Api.IntegrationTests.Controllers
             _dbContext.Lists.AddRange(list1, list2);
             await _dbContext.SaveChangesAsync();
 
-            var moveListDto = new MoveListDto { NewPosition = 1 };
+            var updateListDto = new UpdateListDto { Position = 1 };
 
             // Act
-            var response = await _client.PostAsJsonAsync($"/api/lists/{list1.Id}/move", moveListDto);
+            var response = await _client.PutAsJsonAsync($"/api/lists/{list1.Id}", updateListDto);
 
             // Assert
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);

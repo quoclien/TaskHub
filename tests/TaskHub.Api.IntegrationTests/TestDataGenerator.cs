@@ -1,18 +1,26 @@
 using System;
 using System.Collections.Generic;
-using TaskHub.Api.Shared.Models.Dtos;
-using TaskHub.Api.Shared.Models.Entities;
+using TaskHub.Api.Models.Dtos.Boards;
+using TaskHub.Api.Models.Dtos.Cards;
+using TaskHub.Api.Models.Dtos.Lists;
+using TaskHub.Api.Models.Entities.Boards;
+using TaskHub.Api.Models.Entities.Cards;
+using TaskHub.Api.Models.Entities.Lists;
+using TaskHub.Api.Models.Entities.Users;
 
 namespace TaskHub.Api.IntegrationTests
 {
+
+    /// <summary>
+    /// Helper class for generating test data with properly initialized navigation properties
+    /// </summary>
     public static class TestDataGenerator
     {
-        public static CreateBoardDto GenerateCreateBoardDto(string title = "Test Board", string description = "Test Description")
+        public static CreateBoardDto GenerateCreateBoardDto(string title = "Test Board")
         {
             return new CreateBoardDto
             {
                 Title = title,
-                Description = description,
                 IsPublic = true
             };
         }
@@ -37,44 +45,99 @@ namespace TaskHub.Api.IntegrationTests
             };
         }
 
-        public static Board GenerateTestBoard(string title = "Test Board")
+        /// <summary>
+        /// Creates a test board with all required navigation properties initialized
+        /// </summary>
+        public static Board GenerateTestBoard(string title = "Test Board", Guid? ownerId = null, bool createOwner = true)
         {
-            return new Board
+            var boardId = Guid.NewGuid();
+            var ownerIdValue = ownerId ?? Guid.NewGuid();
+            var owner = createOwner ? new User 
+            { 
+                Id = ownerIdValue,
+                Username = "testuser",
+                Email = "test@example.com",
+                IsActive = true
+            } : null;
+            
+            var board = new Board
             {
-                Id = Guid.NewGuid(),
+                Id = boardId,
                 Title = title,
-                Description = "Test Board Description",
                 IsPublic = true,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.UtcNow,
+                OwnerId = ownerIdValue,
+                Owner = owner,
+                Lists = new List<List>(),
+                BoardMembers = new List<BoardMember>()
             };
+            
+            // Ensure required navigation properties are set
+            board.Lists ??= new List<List>();
+            board.BoardMembers ??= new List<BoardMember>();
+            
+            return board;
         }
 
-        public static List GenerateTestList(Guid boardId, string title = "Test List", int position = 0)
+        /// <summary>
+        /// Creates a test list with all required navigation properties initialized
+        /// </summary>
+        public static List GenerateTestList(Guid? boardId = null, string title = "Test List", int position = 0, Board? board = null)
         {
-            return new List
+            var listId = Guid.NewGuid();
+            var actualBoard = board ?? GenerateTestBoard(createOwner: true);
+            
+            // Ensure the board has its collections initialized
+            actualBoard.Lists ??= new List<List>();
+            
+            var list = new List
             {
-                Id = Guid.NewGuid(),
+                Id = listId,
                 Title = title,
                 Position = position,
-                BoardId = boardId,
+                BoardId = actualBoard.Id,
+                Board = actualBoard,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.UtcNow,
+                Cards = new List<Card>()
             };
+            
+            // Add the list to the board's collection
+            actualBoard.Lists.Add(list);
+            
+            return list;
         }
 
-        public static Card GenerateTestCard(Guid listId, string title = "Test Card", int position = 0)
+        /// <summary>
+        /// Creates a test card with all required navigation properties initialized
+        /// </summary>
+        public static Card GenerateTestCard(Guid? listId = null, string title = "Test Card", int position = 0, List? list = null)
         {
-            return new Card
+            var cardId = Guid.NewGuid();
+            var actualList = list ?? GenerateTestList();
+            
+            // Ensure the list has its cards collection initialized
+            actualList.Cards ??= new List<Card>();
+            
+            var card = new Card
             {
-                Id = Guid.NewGuid(),
+                Id = cardId,
                 Title = title,
                 Description = "Test Card Description",
                 Position = position,
-                ListId = listId,
+                ListId = actualList.Id,
+                List = actualList,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.UtcNow,
+                DueDate = DateTime.UtcNow.AddDays(7),
+                IsArchived = false
             };
+            
+            // Add the card to the list's collection
+            actualList.Cards.Add(card);
+            
+            return card;
         }
     }
 }
