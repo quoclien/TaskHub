@@ -17,7 +17,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "prepublishOnly": "pnpm run build",
-    "prepare": "pnpm run build",
+    "prepare": "pnpm run build"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

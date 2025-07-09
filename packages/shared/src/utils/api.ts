@@ -7,17 +7,14 @@ export class HttpError extends Error implements ApiError {
     public status: number,
     message: string,
     public code?: string,
-    public details?: unknown
+    public details?: unknown,
   ) {
     super(message);
     this.name = 'HttpError';
   }
 }
 
-export function createApiResponse<T>(
-  data: T,
-  message?: string
-): ApiResponse<T> {
+export function createApiResponse<T>(data: T, message?: string): ApiResponse<T> {
   return {
     data,
     message,
@@ -29,7 +26,7 @@ export function createPaginatedResponse<T>(
   data: T[],
   total: number,
   page: number,
-  limit: number
+  limit: number,
 ): PaginatedResponse<T> {
   return {
     data,

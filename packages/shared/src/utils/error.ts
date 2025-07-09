@@ -8,11 +8,11 @@ export class AppError extends Error implements ApiError {
     public message: string,
     public status: number = 500,
     public code?: string,
-    public details?: unknown
+    public details?: unknown,
   ) {
     super(message);
     this.name = this.constructor.name;
-    
+
     // Maintain proper stack trace for where our error was thrown (only available on V8)
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, this.constructor);
@@ -26,21 +26,16 @@ export class AppError extends Error implements ApiError {
     if (error instanceof AppError) {
       return error;
     }
-    
+
     if (error instanceof Error) {
-      return new AppError(
-        error.message || defaultMessage,
-        500,
-        'UNKNOWN_ERROR',
-        error
-      );
+      return new AppError(error.message || defaultMessage, 500, 'UNKNOWN_ERROR', error);
     }
-    
+
     return new AppError(
       typeof error === 'string' ? error : defaultMessage,
       500,
       'UNKNOWN_ERROR',
-      error
+      error,
     );
   }
 
@@ -55,10 +50,8 @@ export class AppError extends Error implements ApiError {
    * Create a new not found error
    */
   static notFound(resource: string, id?: string): AppError {
-    const message = id 
-      ? `${resource} with ID ${id} not found`
-      : `${resource} not found`;
-      
+    const message = id ? `${resource} with ID ${id} not found` : `${resource} not found`;
+
     return new AppError(message, 404, 'NOT_FOUND');
   }
 
@@ -117,19 +110,25 @@ export class AppError extends Error implements ApiError {
  */
 export function isNetworkError(error: unknown): boolean {
   if (typeof error === 'object' && error !== null) {
-    const name = 'name' in error && typeof (error as any).name === 'string' ? (error as any).name.toLowerCase() : '';
-    const msg = 'message' in error && typeof (error as any).message === 'string' ? (error as any).message : '';
+    const name =
+      'name' in error && typeof (error as any).name === 'string'
+        ? (error as any).name.toLowerCase()
+        : '';
+    const msg =
+      'message' in error && typeof (error as any).message === 'string'
+        ? (error as any).message
+        : '';
     const networkSubstrings = [
       'failed to fetch',
       'network request failed',
       'networkerror',
       'network error',
-      'econnrefused'
+      'econnrefused',
     ];
-    if (name === 'typeerror' && networkSubstrings.some(s => msg.toLowerCase().includes(s))) {
+    if (name === 'typeerror' && networkSubstrings.some((s) => msg.toLowerCase().includes(s))) {
       return true;
     }
-    if (networkSubstrings.some(s => msg.toLowerCase().includes(s))) {
+    if (networkSubstrings.some((s) => msg.toLowerCase().includes(s))) {
       return true;
     }
   }
@@ -143,7 +142,7 @@ export function getErrorStatusCode(error: unknown): number {
   if (error instanceof AppError) {
     return error.status;
   }
-  
+
   if (error instanceof Error) {
     switch (error.name) {
       case 'ValidationError':
@@ -163,7 +162,7 @@ export function getErrorStatusCode(error: unknown): number {
         return 500;
     }
   }
-  
+
   return 500;
 }
 
@@ -189,7 +188,7 @@ export function getUserFriendlyErrorMessage(error: unknown): string {
 export function logError(
   error: unknown,
   context: Record<string, unknown> = {},
-  logger: typeof console.error = console.error
+  logger: typeof console.error = console.error,
 ): void {
   const timestamp = new Date().toISOString();
   const errorInfo = {
@@ -201,6 +200,6 @@ export function logError(
     },
     context,
   };
-  
+
   logger(JSON.stringify(errorInfo, null, 2));
 }

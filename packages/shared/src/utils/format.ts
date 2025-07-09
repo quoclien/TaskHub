@@ -5,11 +5,7 @@
  * @param ellipsis String to append if truncated (default: '...')
  * @returns Truncated string
  */
-export function truncate(
-  str: string,
-  maxLength: number,
-  ellipsis = '...'
-): string {
+export function truncate(str: string, maxLength: number, ellipsis = '...'): string {
   if (str.length <= maxLength) return str;
   return str.slice(0, maxLength) + ellipsis;
 }
@@ -19,10 +15,7 @@ export function truncate(
  * @example "hello world" -> "Hello World"
  */
 export function toTitleCase(str: string): string {
-  return str.replace(
-    /\w\S*/g,
-    (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase()
-  );
+  return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
 }
 
 /**
@@ -53,9 +46,7 @@ export function toCamelCase(str: string): string {
  * @example "hello-world" -> "HelloWorld"
  */
 export function toPascalCase(str: string): string {
-  return str
-    .replace(/(?:^\w|[A-Z]|\b\w)/g, (word) => word.toUpperCase())
-    .replace(/[\s-]+/g, '');
+  return str.replace(/(?:^\w|[A-Z]|\b\w)/g, (word) => word.toUpperCase()).replace(/[\s-]+/g, '');
 }
 
 /**
@@ -81,11 +72,7 @@ export function formatNumberWithCommas(num: number): string {
  * Format a number as a percentage
  * @example 0.5 -> "50%"
  */
-export function formatPercent(
-  value: number,
-  decimals = 0,
-  includeSign = true
-): string {
+export function formatPercent(value: number, decimals = 0, includeSign = true): string {
   const percent = value * 100;
   const formatted = percent.toFixed(decimals);
   return includeSign ? `${formatted}%` : formatted;
@@ -97,11 +84,11 @@ export function formatPercent(
  */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
-  
+
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 }
 
@@ -112,15 +99,15 @@ export function formatFileSize(bytes: number): string {
  */
 export function randomString(
   length: number,
-  chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
 ): string {
   let result = '';
   const charsLength = chars.length;
-  
+
   for (let i = 0; i < length; i++) {
     result += chars.charAt(Math.floor(Math.random() * charsLength));
   }
-  
+
   return result;
 }
 
@@ -142,16 +129,12 @@ export function slugify(str: string): string {
  * @example maskSensitive("secret123") -> "*******"
  * @example maskSensitive("secret123", 3) -> "sec..."
  */
-export function maskSensitive(
-  str: string,
-  visibleChars = 0,
-  maskChar = '*'
-): string {
+export function maskSensitive(str: string, visibleChars = 0, maskChar = '*'): string {
   if (!str) return '';
   if (visibleChars <= 0) return maskChar.repeat(str.length);
-  
+
   const visible = str.slice(0, visibleChars);
   const masked = maskChar.repeat(Math.max(0, str.length - visibleChars));
-  
+
   return `${visible}${masked}`;
 }

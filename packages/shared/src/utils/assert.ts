@@ -12,7 +12,7 @@ export function assert(
   condition: unknown,
   message: string,
   status = 400,
-  code = 'ASSERTION_ERROR'
+  code = 'ASSERTION_ERROR',
 ): asserts condition {
   if (!condition) {
     throw new AppError(message, status, code);
@@ -27,7 +27,7 @@ export function assert(
  */
 export function assertDefined<T>(
   value: T | null | undefined,
-  message = 'Expected value to be defined'
+  message = 'Expected value to be defined',
 ): T {
   assert(value != null, message);
   return value;
@@ -39,10 +39,7 @@ export function assertDefined<T>(
  * @param message Error message to throw if value is not a string
  * @returns The string value
  */
-export function assertString(
-  value: unknown,
-  message = 'Expected a string'
-): string {
+export function assertString(value: unknown, message = 'Expected a string'): string {
   assert(typeof value === 'string', message);
   return value;
 }
@@ -53,10 +50,7 @@ export function assertString(
  * @param message Error message to throw if value is not a number
  * @returns The number value
  */
-export function assertNumber(
-  value: unknown,
-  message = 'Expected a number'
-): number {
+export function assertNumber(value: unknown, message = 'Expected a number'): number {
   assert(typeof value === 'number', message);
   return value;
 }
@@ -69,7 +63,7 @@ export function assertNumber(
  */
 export function assertObject<T = Record<string, unknown>>(
   value: unknown,
-  message = 'Expected an object'
+  message = 'Expected an object',
 ): T {
   assert(value !== null && typeof value === 'object', message);
   return value as T;
@@ -81,10 +75,7 @@ export function assertObject<T = Record<string, unknown>>(
  * @param message Error message to throw if value is not an array
  * @returns The array value
  */
-export function assertArray<T = unknown>(
-  value: unknown,
-  message = 'Expected an array'
-): T[] {
+export function assertArray<T = unknown>(value: unknown, message = 'Expected an array'): T[] {
   assert(Array.isArray(value), message);
   return value as T[];
 }
@@ -99,18 +90,13 @@ export function assertArray<T = unknown>(
 export function assertSchema<T>(
   schema: z.ZodSchema<T>,
   value: unknown,
-  message = 'Validation failed'
+  message = 'Validation failed',
 ): T {
   try {
     return schema.parse(value);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      throw new AppError(
-        message,
-        400,
-        'VALIDATION_ERROR',
-        error.errors
-      );
+      throw new AppError(message, 400, 'VALIDATION_ERROR', error.errors);
     }
     throw error;
   }
@@ -126,7 +112,7 @@ export function assertSchema<T>(
 export function assertInstanceOf<T>(
   value: unknown,
   constructor: new (...args: any[]) => T,
-  message = `Expected instance of ${constructor.name}`
+  message = `Expected instance of ${constructor.name}`,
 ): T {
   assert(value instanceof constructor, message);
   return value;
@@ -142,12 +128,12 @@ export function assertInstanceOf<T>(
 export function assertEnumValue<T extends Record<string, string | number>>(
   enumObj: T,
   value: unknown,
-  message = 'Invalid enum value'
+  message = 'Invalid enum value',
 ): T[keyof T] {
   const validValues = Object.values(enumObj);
   assert(
     validValues.includes(value as T[keyof T]),
-    `${message}. Expected one of: ${validValues.join(', ')}`
+    `${message}. Expected one of: ${validValues.join(', ')}`,
   );
   return value as T[keyof T];
 }
@@ -158,10 +144,7 @@ export function assertEnumValue<T extends Record<string, string | number>>(
  * @param message Error message to throw if check fails
  * @returns The UUID string
  */
-export function assertUuid(
-  value: unknown,
-  message = 'Invalid UUID format'
-): string {
+export function assertUuid(value: unknown, message = 'Invalid UUID format'): string {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   const strValue = String(value);
   assert(uuidRegex.test(strValue), message);
@@ -174,10 +157,7 @@ export function assertUuid(
  * @param message Error message to throw if check fails
  * @returns The email string
  */
-export function assertEmail(
-  value: unknown,
-  message = 'Invalid email address'
-): string {
+export function assertEmail(value: unknown, message = 'Invalid email address'): string {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const strValue = String(value);
   assert(emailRegex.test(strValue), message);
@@ -196,7 +176,7 @@ export function assertInRange(
   value: number,
   min: number,
   max: number,
-  message = `Value must be between ${min} and ${max}`
+  message = `Value must be between ${min} and ${max}`,
 ): number {
   assert(value >= min && value <= max, message);
   return value;

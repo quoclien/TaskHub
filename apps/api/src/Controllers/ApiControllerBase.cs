@@ -10,7 +10,7 @@ namespace TaskHub.Api.Controllers
         protected IActionResult OkOrNotFound<T>(T? result) where T : class
             => result == null ? NotFound() : Ok(result);
 
-        protected new IActionResult CreatedAtAction<T>(string actionName, object routeValues, T value)
+        protected IActionResult CreatedAtAction<T>(string actionName, object routeValues, T value)
             => base.CreatedAtAction(actionName, routeValues, value);
     }
 }

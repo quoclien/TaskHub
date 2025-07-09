@@ -3,10 +3,7 @@ import { z } from 'zod';
 /**
  * Create a schema for validating email addresses
  */
-export const emailSchema = z
-  .string()
-  .min(1, 'Email is required')
-  .email('Invalid email address');
+export const emailSchema = z.string().min(1, 'Email is required').email('Invalid email address');
 
 /**
  * Create a schema for validating passwords
@@ -22,10 +19,7 @@ export const passwordSchema = z
   .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
   .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
   .regex(/[0-9]/, 'Password must contain at least one number')
-  .regex(
-    /[^A-Za-z0-9]/,
-    'Password must contain at least one special character'
-  );
+  .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character');
 
 /**
  * Create a schema for validating UUIDs
@@ -53,10 +47,10 @@ export const paginationSchema = z.object({
 export function validate<T>(
   schema: z.ZodSchema<T>,
   data: unknown,
-  errorMessage = 'Validation failed'
+  errorMessage = 'Validation failed',
 ): T {
   const result = schema.safeParse(data);
-  
+
   if (!result.success) {
     const formattedError = result.error.format();
     const error = new Error(errorMessage) as Error & { cause: unknown };
@@ -64,7 +58,7 @@ export function validate<T>(
     error.cause = formattedError;
     throw error;
   }
-  
+
   return result.data;
 }
 
@@ -72,7 +66,7 @@ export function validate<T>(
  * Create a schema for validating search queries
  */
 export const searchQuerySchema = z.object({
-  query: z.string().min(1, { message: 'Search query must not be empty' })
+  query: z.string().min(1, { message: 'Search query must not be empty' }),
 });
 
 /**
@@ -88,24 +82,28 @@ export const fileSchema = z.object({
 /**
  * Create a schema for validating date ranges
  */
-export const dateRangeSchema = z.object({
-  from: z.date(),
-  to: z.date(),
-}).refine((data) => data.from <= data.to, {
-  message: 'Start date must be before end date',
-  path: ['from'],
-});
+export const dateRangeSchema = z
+  .object({
+    from: z.date(),
+    to: z.date(),
+  })
+  .refine((data) => data.from <= data.to, {
+    message: 'Start date must be before end date',
+    path: ['from'],
+  });
 
 /**
  * Create a schema for validating time intervals
  */
-export const timeIntervalSchema = z.object({
-  start: z.date(),
-  end: z.date(),
-}).refine((data) => data.start < data.end, {
-  message: 'Start time must be before end time',
-  path: ['start'],
-});
+export const timeIntervalSchema = z
+  .object({
+    start: z.date(),
+    end: z.date(),
+  })
+  .refine((data) => data.start < data.end, {
+    message: 'Start time must be before end time',
+    path: ['start'],
+  });
 
 /**
  * Validate an object against a schema and return the validated data or validation errors
@@ -115,20 +113,20 @@ export const timeIntervalSchema = z.object({
  */
 export function validateWithErrors<T>(
   schema: z.ZodSchema<T>,
-  data: unknown
+  data: unknown,
 ): { data?: T; errors?: Record<string, string> } {
   const result = schema.safeParse(data);
-  
+
   if (!result.success) {
     const errors: Record<string, string> = {};
-    
+
     result.error.errors.forEach((error) => {
       const path = error.path.join('.');
       errors[path] = error.message;
     });
-    
+
     return { errors };
   }
-  
+
   return { data: result.data };
 }
