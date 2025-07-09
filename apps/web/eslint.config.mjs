@@ -20,10 +20,30 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  // Base JavaScript and TypeScript configurations
+  // Global ignores
+  {
+    ignores: ['node_modules/', '.next/'],
+  },
+
+  // Base JavaScript configuration
   js.configs.recommended,
-  ...typescriptEslint.configs.strictTypeChecked,
-  ...typescriptEslint.configs.stylisticTypeChecked,
+
+  // TypeScript configurations
+  ...typescriptEslint.config(
+    {
+      files: ['**/*.ts', '**/*.tsx'],
+      extends: [
+        ...typescriptEslint.configs.strictTypeChecked,
+        ...typescriptEslint.configs.stylisticTypeChecked,
+      ],
+      languageOptions: {
+        parserOptions: {
+          project: true,
+          tsconfigRootDir: __dirname,
+        },
+      },
+    }
+  ),
   
   // Prettier integration (must be after other configs to override them)
   prettierConfig,
