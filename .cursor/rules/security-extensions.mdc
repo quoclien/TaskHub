@@ -1,0 +1,10 @@
+---
+globs: apps/api/**/*.cs,apps/web/**/*.ts,apps/web/**/*.tsx
+alwaysApply: false
+---
+
+- **Rate-limit** every public endpoint.
+- Enforce a **strict Content-Security-Policy** (no `eval`, no inline scripts, only trusted domains).
+- Apply **role-based access control** with `IAuthorizationService` checks in controllers and hubs.
+- **Validate early**: Zod (frontend) / FluentValidation (backend) must run before business logic.
+- Only use **parameterised EF Core queries**; never execute unsanitised raw SQL.

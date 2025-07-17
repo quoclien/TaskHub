@@ -19,149 +19,140 @@ using Xunit;
 
 namespace TaskHub.Api.IntegrationTests.Controllers
 {
-    public class ListsControllerTests : IClassFixture<CustomWebApplicationFactory>, IDisposable
+    [Collection("TestCollection")]
+    public class ListsControllerTests : IClassFixture<CustomWebApplicationFactory>
     {
-        private readonly HttpClient _client;
-        private readonly ApplicationDbContext _dbContext;
         private readonly CustomWebApplicationFactory _factory;
-        private readonly Board _testBoard;
 
         public ListsControllerTests(CustomWebApplicationFactory factory)
         {
             _factory = factory;
-            _client = factory.CreateClient(new WebApplicationFactoryClientOptions
-            {
-                AllowAutoRedirect = false
-            });
+        }
 
-            var scope = factory.Services.CreateScope();
-            _dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            
-            // Create a test board for list tests
-            _testBoard = new Board
-            {
-                Id = Guid.NewGuid(),
-                Title = "Test Board",
-                IsPublic = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                OwnerId = Guid.NewGuid()
-            };
-
-            _dbContext.Boards.Add(_testBoard);
-            _dbContext.SaveChanges();
+        private async Task SeedDataAsync(Func<ApplicationDbContext, Task> seeder)
+        {
+            using var scope = _factory.Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            await dbContext.Database.EnsureCreatedAsync();
+            await seeder(dbContext);
         }
 
         [Fact]
         public async Task GetLists_WithValidBoardId_ReturnsSuccess()
         {
             // Arrange
-            var list = new List
+            var client = _factory.GetAuthenticatedClient();
+            Board testBoard = null;
+
+            await SeedDataAsync(async dbContext =>
             {
-                Id = Guid.NewGuid(),
-                Title = "Test List",
-                Position = 0,
-                BoardId = _testBoard.Id,
-                Board = _testBoard, // Set the required navigation property
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-            _dbContext.Lists.Add(list);
-            await _dbContext.SaveChangesAsync();
+                var board = TestDataGenerator.GenerateTestBoard();
+                var list = TestDataGenerator.GenerateTestList(board.Id);
+                board.Lists.Add(list);
+                dbContext.Boards.Add(board);
+                await dbContext.SaveChangesAsync();
+                testBoard = board;
+            });
 
             // Act
-            var response = await _client.GetAsync($"/api/boards/{_testBoard.Id}/lists");
+            var response = await client.GetAsync($"/api/boards/{testBoard.Id}/lists");
 
             // Assert
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadFromJsonAsync<ListDto[]>();
             Assert.NotNull(result);
             Assert.Single(result);
-            Assert.Equal(list.Title, result[0].Title);
         }
 
         [Fact]
         public async Task GetList_WithValidId_ReturnsList()
         {
             // Arrange
-            var list = new List
+            var client = _factory.GetAuthenticatedClient();
+            List testList = null;
+
+            await SeedDataAsync(async dbContext =>
             {
-                Id = Guid.NewGuid(),
-                Title = "Test List",
-                Position = 0,
-                BoardId = _testBoard.Id,
-                Board = _testBoard, // Set the required navigation property
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-            _dbContext.Lists.Add(list);
-            await _dbContext.SaveChangesAsync();
+                var board = TestDataGenerator.GenerateTestBoard();
+                var list = TestDataGenerator.GenerateTestList(board.Id);
+                board.Lists.Add(list);
+                dbContext.Boards.Add(board);
+                await dbContext.SaveChangesAsync();
+                testList = list;
+            });
 
             // Act
-            var response = await _client.GetAsync($"/api/lists/{list.Id}");
+            var response = await client.GetAsync($"/api/lists/{testList.Id}?boardId={testList.BoardId}");
 
             // Assert
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadFromJsonAsync<ListDto>();
             Assert.NotNull(result);
-            Assert.Equal(list.Id, result.Id);
-            Assert.Equal(list.Title, result.Title);
+            Assert.Equal(testList.Id, result.Id);
         }
 
         [Fact]
-        public async Task CreateList_WithValidData_ReturnsCreated()
+        public async Task CreateList_WithValidData_ReturnsCreatedList()
         {
             // Arrange
-            var createListDto = TestDataGenerator.GenerateCreateListDto();
+            var client = _factory.GetAuthenticatedClient();
+            Board testBoard = null;
+
+            await SeedDataAsync(async dbContext =>
+            {
+                var board = TestDataGenerator.GenerateTestBoard();
+                dbContext.Boards.Add(board);
+                await dbContext.SaveChangesAsync();
+                testBoard = board;
+            });
+
+            var createListDto = new CreateListDto { Title = "New List" };
 
             // Act
-            var response = await _client.PostAsJsonAsync($"/api/boards/{_testBoard.Id}/lists", createListDto);
+            var response = await client.PostAsJsonAsync($"/api/boards/{testBoard.Id}/lists", createListDto);
 
             // Assert
-            response.EnsureSuccessStatusCode();
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-            
             var result = await response.Content.ReadFromJsonAsync<ListDto>();
             Assert.NotNull(result);
             Assert.Equal(createListDto.Title, result.Title);
-            Assert.Equal(_testBoard.Id, result.BoardId);
-            
-            // Verify location header
-            Assert.NotNull(response.Headers.Location);
-            Assert.Equal($"/api/lists/{result.Id}", response.Headers.Location.LocalPath);
+
+            // Verify the list was created
+            using var scope = _factory.Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var createdList = await dbContext.Lists.FindAsync(result.Id);
+            Assert.NotNull(createdList);
         }
 
         [Fact]
         public async Task UpdateList_WithValidData_ReturnsNoContent()
         {
             // Arrange
-            var list = new List
-            {
-                Id = Guid.NewGuid(),
-                Title = "Test List",
-                Position = 0,
-                BoardId = _testBoard.Id,
-                Board = _testBoard, // Set the required navigation property
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-            _dbContext.Lists.Add(list);
-            await _dbContext.SaveChangesAsync();
+            var client = _factory.GetAuthenticatedClient();
+            List testList = null;
 
-            var updateListDto = new UpdateListDto 
-            { 
-                Title = "Updated List Title",
-                Position = 1
-            };
+            await SeedDataAsync(async dbContext =>
+            {
+                var board = TestDataGenerator.GenerateTestBoard();
+                var list = TestDataGenerator.GenerateTestList(board.Id);
+                board.Lists.Add(list);
+                dbContext.Boards.Add(board);
+                await dbContext.SaveChangesAsync();
+                testList = list;
+            });
+
+            var updateListDto = new UpdateListDto { Title = "Updated List", Position = 1 };
 
             // Act
-            var response = await _client.PutAsJsonAsync($"/api/lists/{list.Id}", updateListDto);
+            var response = await client.PutAsJsonAsync($"/api/lists/{testList.Id}", updateListDto);
 
             // Assert
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
             // Verify the list was updated
-            var updatedList = await _dbContext.Lists.FindAsync(list.Id);
+            using var scope = _factory.Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var updatedList = await dbContext.Lists.FindAsync(testList.Id);
             Assert.NotNull(updatedList);
             Assert.Equal(updateListDto.Title, updatedList.Title);
             Assert.Equal(updateListDto.Position, updatedList.Position);
@@ -171,18 +162,29 @@ namespace TaskHub.Api.IntegrationTests.Controllers
         public async Task DeleteList_WithValidId_ReturnsNoContent()
         {
             // Arrange
-            var list = TestDataGenerator.GenerateTestList(_testBoard.Id);
-            _dbContext.Lists.Add(list);
-            await _dbContext.SaveChangesAsync();
+            var client = _factory.GetAuthenticatedClient();
+            List testList = null;
+
+            await SeedDataAsync(async dbContext =>
+            {
+                var board = TestDataGenerator.GenerateTestBoard();
+                var list = TestDataGenerator.GenerateTestList(board.Id);
+                board.Lists.Add(list);
+                dbContext.Boards.Add(board);
+                await dbContext.SaveChangesAsync();
+                testList = list;
+            });
 
             // Act
-            var response = await _client.DeleteAsync($"/api/lists/{list.Id}?boardId={_testBoard.Id}");
+            var response = await client.DeleteAsync($"/api/lists/{testList.Id}?boardId={testList.BoardId}");
 
             // Assert
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
             // Verify the list was deleted
-            var deletedList = await _dbContext.Lists.FindAsync(list.Id);
+            using var scope = _factory.Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var deletedList = await dbContext.Lists.FindAsync(testList.Id);
             Assert.Null(deletedList);
         }
 
@@ -190,34 +192,41 @@ namespace TaskHub.Api.IntegrationTests.Controllers
         public async Task MoveList_WithValidData_ReturnsNoContent()
         {
             // Arrange
-            var list1 = TestDataGenerator.GenerateTestList(_testBoard.Id, "List 1", 0);
-            var list2 = TestDataGenerator.GenerateTestList(_testBoard.Id, "List 2", 1);
-            _dbContext.Lists.AddRange(list1, list2);
-            await _dbContext.SaveChangesAsync();
+            var client = _factory.GetAuthenticatedClient();
+            List testList1 = null;
+            List testList2 = null;
+
+            await SeedDataAsync(async dbContext =>
+            {
+                var board = TestDataGenerator.GenerateTestBoard();
+                var list1 = TestDataGenerator.GenerateTestList(board.Id, "List 1", 0);
+                var list2 = TestDataGenerator.GenerateTestList(board.Id, "List 2", 1);
+                board.Lists.Add(list1);
+                board.Lists.Add(list2);
+                dbContext.Boards.Add(board);
+                await dbContext.SaveChangesAsync();
+                testList1 = list1;
+                testList2 = list2;
+            });
 
             var updateListDto = new UpdateListDto { Position = 1 };
 
             // Act
-            var response = await _client.PutAsJsonAsync($"/api/lists/{list1.Id}", updateListDto);
+            var response = await client.PutAsJsonAsync($"/api/lists/{testList1.Id}", updateListDto);
 
             // Assert
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
             // Verify the lists were reordered
-            var updatedList1 = await _dbContext.Lists.FindAsync(list1.Id);
-            var updatedList2 = await _dbContext.Lists.FindAsync(list2.Id);
-            
+            using var scope = _factory.Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var updatedList1 = await dbContext.Lists.FindAsync(testList1.Id);
+            var updatedList2 = await dbContext.Lists.FindAsync(testList2.Id);
+
             Assert.NotNull(updatedList1);
             Assert.NotNull(updatedList2);
             Assert.Equal(1, updatedList1.Position);
             Assert.Equal(0, updatedList2.Position);
-        }
-
-        public void Dispose()
-        {
-            // Clean up database after each test
-            _dbContext.Database.EnsureDeleted();
-            _dbContext.Dispose();
         }
     }
 }

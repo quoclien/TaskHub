@@ -1,3 +1,45 @@
 {
-    "dotnet.defaultSolution": "backend/backend.sln"
+    // Project Configuration
+    "dotnet.defaultSolution": "TaskHub.sln",
+    "dotnet.preferCSharpExtension": true,
+    "dotnet.server.useOmnisharp": false,
+    "dotnet.server.trace": "Information",
+    "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
+    "dotnet.backgroundAnalysis.enabled": true,
+    "dotnet.completion.showNameCompletionSuggestions": true,
+    
+    // C# Language Server Settings
+    "csharp.semanticHighlighting.enabled": true,
+    "csharp.format.enable": true,
+    "csharp.inlayHints.enabled": true,
+    "csharp.inlayHints.deconstructionHints": true,
+    "csharp.inlayHints.implicitObjectCreationHints": true,
+    "csharp.inlayHints.implicitVariableTypeHints": true,
+    "csharp.inlayHints.parameterHints": true,
+    "csharp.inlayHints.typeHints": true,
+    
+    // Workspace Settings
+    "files.exclude": {
+        "**/bin": true,
+        "**/obj": true,
+        "**/.git": true,
+        "**/node_modules": true
+    },
+    
+    // File associations
+    "files.associations": {
+        "*.cs": "csharp",
+        "*.csproj": "xml",
+        "*.sln": "solution"
+    },
+    
+    // Disable conflicting extensions
+    "omnisharp.enabled": false,
+    
+    // Search settings
+    "search.exclude": {
+        "**/bin": true,
+        "**/obj": true,
+        "**/node_modules": true
+    }
 }

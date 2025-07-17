@@ -1,0 +1,16 @@
+---
+description: TaskHub DevOps & Tools Best Practices
+alwaysApply: true
+---
+
+- Use PNPM workspaces for dependency management; always install from root.
+- Use workspace:* protocol for internal dependencies.
+- Run scripts with `--filter` or `-r` as appropriate.
+- CI/CD: Use GitHub Actions, with separate jobs for frontend and backend, and dependency caching.
+- Use Docker Compose for local development with hot-reloading.
+- All new features must have tests (Vitest for frontend, xUnit for backend).
+- Lint and format code with ESLint and Prettier; enforce via pre-commit hooks and CI.
+- Use Serilog for backend logging, Sentry for error tracking, and Application Insights for performance.
+- Use Dependabot/Renovate for dependency scanning; never commit secrets.
+- Document APIs with Swagger/OpenAPI and maintain a root README.
+- All changes require code review before merging.

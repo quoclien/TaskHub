@@ -16,15 +16,7 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
         {
         }
 
-        public async Task<ListEntity> GetByIdOrThrowAsync(Guid id)
-        {
-            var list = await _context.Lists.FindAsync(id);
-            if (list == null)
-            {
-                throw new KeyNotFoundException($"List with ID {id} not found.");
-            }
-            return list;
-        }
+
 
         public async Task<IEnumerable<ListEntity>> GetListsByBoardIdAsync(Guid boardId)
         {

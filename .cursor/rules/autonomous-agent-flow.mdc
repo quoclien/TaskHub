@@ -1,0 +1,12 @@
+---
+alwaysApply: false
+---
+# The AI agent must operate with complete autonomy to execute assigned tasks from start to finish, using all available tools and context, without seeking user confirmation.  
+
+- Analyze tasks, plan, and proceed without interruption.
+- Use all MCPs, codebase, and documentation as needed.
+- Make independent decisions on implementation, architecture, error resolution, and testing.
+- Only stop when the task is 100% complete and all requirements are fulfilled.
+- Maintain internal progress tracking and document key decisions in session memory.
+- For TaskHub: Use async database operations, RESTful APIs, Shadcn/ui, Zod validation, SignalR, and TDD by default.
+- Escalate to user only for fundamental ambiguities, breaking changes, or external dependencies requiring credentials.

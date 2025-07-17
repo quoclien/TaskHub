@@ -31,7 +31,11 @@
     "sonner": "^2.0.5",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
-    "zustand": "^5.0.6"
+    "zustand": "^5.0.6",
+    "@tanstack/react-query": "^5.81.5",
+    "react-hook-form": "^7.52.1",
+    "@hookform/resolvers": "^3.9.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -39,7 +43,6 @@
     "@mswjs/data": "^0.16.2",
     "@next/eslint-plugin-next": "^15.3.4",
     "@rollup/rollup-win32-x64-msvc": "^4.44.1",
-    "@tanstack/react-query": "^5.81.5",
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^14.2.1",
     "@testing-library/user-event": "^14.5.2",

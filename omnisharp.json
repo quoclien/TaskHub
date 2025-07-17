@@ -1,0 +1,27 @@
+{
+    "FormattingOptions": {
+        "EnableEditorConfigSupport": true,
+        "OrganizeImports": true
+    },
+    "MsBuild": {
+        "EnablePackageAutoRestore": true,
+        "LoadProjectsOnDemand": false
+    },
+    "RoslynExtensionsOptions": {
+        "EnableAnalyzersSupport": true,
+        "EnableImportCompletion": true,
+        "EnableDecompilationSupport": true,
+        "DocumentAnalysisTimeoutMs": 30000
+    },
+    "Sdk": {
+        "IncludePrereleases": false
+    },
+    "FileOptions": {
+        "SystemExcludeSearchPatterns": [
+            "**/bin/**/*",
+            "**/obj/**/*",
+            "**/node_modules/**/*",
+            "**/.git/**/*"
+        ]
+    }
+} 

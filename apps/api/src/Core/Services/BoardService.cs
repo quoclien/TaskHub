@@ -54,18 +54,31 @@ namespace TaskHub.Api.Core.Services
             board.OwnerId = userId;
             board.CreatedAt = DateTime.UtcNow;
 
-            board.BoardMembers.Add(new BoardMemberEntity
-            {
-                UserId = userId,
-                Role = BoardRole.Owner,
-                JoinedAt = DateTime.UtcNow
-            });
-
             try
             {
+                // First save the board to get the ID
                 await _boardRepository.AddAsync(board);
                 await SaveChangesAsync();
-                return _mapper.Map<BoardDto>(board);
+
+                // Now add the board member with the correct BoardId
+                var boardMember = new BoardMemberEntity
+                {
+                    BoardId = board.Id,
+                    UserId = userId,
+                    User = user, // ensure User navigation is populated to avoid null mapping issues
+                    Role = BoardRole.Owner,
+                    JoinedAt = DateTime.UtcNow
+                };
+
+                await _boardRepository.AddBoardMemberAsync(boardMember);
+                await SaveChangesAsync();
+
+                // Return the board with the member information
+                var boardWithDetails = await _boardRepository.GetByIdWithDetailsAsync(board.Id);
+
+                // Fallback to the original entity if the detailed load failed for any reason.
+                var entityToMap = boardWithDetails ?? board;
+                return _mapper.Map<BoardDto>(entityToMap);
             }
             catch (Exception ex)
             {

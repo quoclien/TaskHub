@@ -1,106 +1,65 @@
-using System;
 using System.Data.Common;
-using System.Threading.Tasks;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using TaskHub.Api.Infrastructure.Data;
 using Microsoft.Extensions.Hosting;
-using TaskHub.Api;
+using TaskHub.Api.Infrastructure.Data;
 using Xunit;
 
 namespace TaskHub.Api.IntegrationTests
 {
     public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
-        private DbConnection _connection;
-
-        public CustomWebApplicationFactory()
-        {
-            // Create and open SQLite in-memory connection
-            _connection = new SqliteConnection("DataSource=:memory:");
-            _connection.Open();
-        }
-
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.ConfigureServices(services =>
             {
-                // Remove the app's ApplicationDbContext registration
-                var dbContextDescriptor = services.SingleOrDefault(
+                // Remove production DbContext options and Npgsql data source
+                var dbContextOptionsDescriptor = services.SingleOrDefault(
                     d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-
-                if (dbContextDescriptor != null)
+                if (dbContextOptionsDescriptor != null)
                 {
-                    services.Remove(dbContextDescriptor);
+                    services.Remove(dbContextOptionsDescriptor);
                 }
 
-                // Add ApplicationDbContext using SQLite in-memory database for testing
-                services.AddDbContext<ApplicationDbContext>((_, options) =>
+                var npgsqlDataSourceDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(Npgsql.NpgsqlDataSource));
+                if (npgsqlDataSourceDescriptor != null)
                 {
-                    options.UseSqlite(_connection);
+                    services.Remove(npgsqlDataSourceDescriptor);
+                }
+
+                // Add DbContext using the shared connection from DatabaseManager
+                services.AddDbContext<ApplicationDbContext>(options =>
+                {
+                    options.UseSqlite(DatabaseManager.Connection);
                 });
-
-                // Build the service provider
-                var sp = services.BuildServiceProvider();
-
-                // Create a scope to initialize the database
-                using (var scope = sp.CreateScope())
-                {
-                    var scopedServices = scope.ServiceProvider;
-                    var db = scopedServices.GetRequiredService<ApplicationDbContext>();
-                    var logger = scopedServices.GetRequiredService<ILogger<CustomWebApplicationFactory>>();
-
-                    try
-                    {
-                        // Ensure the database is created and migrated
-                        db.Database.EnsureCreated();
-                        
-                        // Optional: Seed test data if needed
-                        // await SeedTestData(db);
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogError(ex, "An error occurred setting up the test database. Error: {Message}", ex.Message);
-                    }
-                }
             });
         }
 
         protected override IHost CreateHost(IHostBuilder builder)
         {
             var host = base.CreateHost(builder);
-            
+
+            // Ensure the database schema is created for the shared connection
             using (var scope = host.Services.CreateScope())
             {
-                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                db.Database.EnsureCreated();
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                dbContext.Database.EnsureCreated();
             }
-            
+
             return host;
         }
 
-        public async Task ResetDatabaseAsync()
+        public HttpClient GetAuthenticatedClient(bool isAdmin = false, string? userId = null)
         {
-            using (var scope = Services.CreateScope())
-            {
-                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                await db.Database.EnsureDeletedAsync();
-                await db.Database.EnsureCreatedAsync();
-            }
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            
-            if (disposing)
-            {
-                _connection?.Dispose();
-            }
+            var client = CreateClient();
+            var token = TestDataGenerator.GenerateJwtToken(Services.GetRequiredService<IConfiguration>(), isAdmin, userId);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            return client;
         }
     }
 }

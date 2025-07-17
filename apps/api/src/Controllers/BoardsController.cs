@@ -18,8 +18,8 @@ namespace TaskHub.Api.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<BoardDto>))]
-        public async Task<IActionResult> GetBoards()
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult<IEnumerable<BoardDto>>> GetBoards()
         {
             try
             {
@@ -39,9 +39,9 @@ namespace TaskHub.Api.Controllers
         /// </summary>
         /// <param name="id">The ID of the board</param>
         [HttpGet("{id}")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BoardDto))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetBoard(Guid id)
+        public async Task<ActionResult<BoardDto>> GetBoard(Guid id)
         {
             try
             {
@@ -61,15 +61,10 @@ namespace TaskHub.Api.Controllers
         /// </summary>
         /// <param name="createBoardDto">The board data</param>
         [HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(BoardDto))]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateBoard([FromBody] CreateBoardDto createBoardDto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             try
             {
                 var userId = Guid.Parse(User?.Identity?.Name ?? throw new UnauthorizedAccessException("User not authenticated"));
@@ -94,9 +89,9 @@ namespace TaskHub.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateBoard(Guid id, [FromBody] UpdateBoardDto updateBoardDto)
         {
-            if (id == Guid.Empty || !ModelState.IsValid)
+            if (id == Guid.Empty)
             {
-                return BadRequest(ModelState);
+                return BadRequest("Invalid board ID");
             }
 
             try

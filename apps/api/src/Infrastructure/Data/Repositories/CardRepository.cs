@@ -16,15 +16,7 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
         {
         }
 
-        public async Task<CardEntity> GetByIdOrThrowAsync(Guid id)
-        {
-            var card = await _context.Cards.FindAsync(id);
-            if (card == null)
-            {
-                throw new KeyNotFoundException($"Card with ID {id} not found.");
-            }
-            return card;
-        }
+
 
         public async Task<IEnumerable<CardEntity>> GetCardsByListIdAsync(Guid listId)
         {
@@ -97,9 +89,6 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
             }
         }
 
-        public async Task<bool> ExistsAsync(Guid id)
-        {
-            return await _context.Cards.AnyAsync(c => c.Id == id);
-        }
+
     }
 }

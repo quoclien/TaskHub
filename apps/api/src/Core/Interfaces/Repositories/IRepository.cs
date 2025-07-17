@@ -23,6 +23,14 @@ namespace TaskHub.Api.Core.Interfaces.Repositories
         Task<T?> GetByIdAsync(Guid id);
         
         /// <summary>
+        /// Retrieves an entity by its ID, throwing an exception if not found
+        /// </summary>
+        /// <param name="id">The ID of the entity to retrieve</param>
+        /// <returns>The entity if found</returns>
+        /// <exception cref="KeyNotFoundException">Thrown when the entity is not found</exception>
+        Task<T> GetByIdOrThrowAsync(Guid id);
+        
+        /// <summary>
         /// Retrieves all entities
         /// </summary>
         /// <returns>A collection of all entities</returns>

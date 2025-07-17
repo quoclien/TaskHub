@@ -43,6 +43,12 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
             return await _dbSet.FindAsync(id);
         }
 
+        public async Task<T> GetByIdOrThrowAsync(Guid id)
+        {
+            var entity = await _dbSet.FindAsync(id);
+            return entity ?? throw new KeyNotFoundException($"Entity of type {typeof(T).Name} with ID {id} not found.");
+        }
+
         public async Task<IEnumerable<T>> GetAllAsync()
         {
             return await _dbSet.ToListAsync();

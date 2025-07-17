@@ -1,0 +1,13 @@
+---
+description: TaskHub Frontend Best Practices & Style Guide
+globs: apps/web/**/*.ts,apps/web/**/*.tsx
+---
+
+- Prefer React Server Components; use Client Components only when necessary.
+- Colocate components, styles, and tests by feature.
+- Use TypeScript strict mode and specific types.
+- File naming: PascalCase for components, camelCase for hooks/utilities, lowercase for pages/layouts.
+- Use TanStack Query for client data fetching and mutations; Zustand for global UI state.
+- Use Zod for schema validation and connect with React Hook Form.
+- Compose UI with Shadcn/ui and Tailwind CSS; use the `cn` utility for class merging.
+- Organize React components: Imports, type definitions, component function, hooks/state, event handlers (handle prefix), effects, render helpers, main JSX return.

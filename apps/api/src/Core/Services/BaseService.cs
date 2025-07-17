@@ -16,7 +16,7 @@ namespace TaskHub.Api.Core.Services
 
         protected async Task<int> SaveChangesAsync()
         {
-            return await SaveChangesAsync();
+            return await _unitOfWork.SaveChangesAsync();
         }
 
         protected virtual void Dispose(bool disposing)

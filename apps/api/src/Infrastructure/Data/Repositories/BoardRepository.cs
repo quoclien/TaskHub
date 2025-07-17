@@ -19,9 +19,11 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
 
         public async Task<BoardEntity?> GetByIdWithDetailsAsync(Guid id)
         {
+            // EF Core's translation of OrderBy inside Include is not supported by all providers (e.g., Npgsql).
+            // We fetch related entities without explicit ordering and let application code sort where necessary.
             return await _context.Boards
-                .Include(b => b.Lists.OrderBy(l => l.Position))
-                    .ThenInclude(l => l.Cards.OrderBy(c => c.Position))
+                .Include(b => b.Lists)
+                    .ThenInclude(l => l.Cards)
                 .Include(b => b.BoardMembers)
                     .ThenInclude(bm => bm.User)
                 .AsSplitQuery()

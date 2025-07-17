@@ -6,6 +6,11 @@ using TaskHub.Api.Models.Dtos.Lists;
 using TaskHub.Api.Models.Entities.Boards;
 using TaskHub.Api.Models.Entities.Cards;
 using TaskHub.Api.Models.Entities.Lists;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using TaskHub.Api.Models.Entities.Users;
 
 namespace TaskHub.Api.IntegrationTests
@@ -16,6 +21,40 @@ namespace TaskHub.Api.IntegrationTests
     /// </summary>
     public static class TestDataGenerator
     {
+        public static string GenerateJwtToken(IConfiguration configuration, bool isAdmin = false, string? userId = null)
+        {
+            var jwtSettings = configuration.GetSection("Jwt");
+            var issuer = jwtSettings["Issuer"] ?? throw new InvalidOperationException("Jwt:Issuer not found.");
+            var audience = jwtSettings["Audience"] ?? throw new InvalidOperationException("Jwt:Audience not found.");
+            var keyString = jwtSettings["Key"] ?? throw new InvalidOperationException("Jwt:Key not found.");
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var claims = new List<Claim>
+            {
+                new(JwtRegisteredClaimNames.Sub, userId ?? Guid.NewGuid().ToString()),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new(JwtRegisteredClaimNames.Iss, issuer),
+                new(JwtRegisteredClaimNames.Aud, audience)
+            };
+
+            if (isAdmin)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, "admin"));
+            }
+
+            var token = new JwtSecurityToken(
+                issuer: issuer,
+                audience: audience,
+                claims: claims,
+                expires: DateTime.UtcNow.AddDays(1),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
         public static CreateBoardDto GenerateCreateBoardDto(string title = "Test Board")
         {
             return new CreateBoardDto
@@ -52,7 +91,7 @@ namespace TaskHub.Api.IntegrationTests
         {
             var boardId = Guid.NewGuid();
             var ownerIdValue = ownerId ?? Guid.NewGuid();
-            var owner = createOwner ? new User 
+            User? owner = createOwner ? new User 
             { 
                 Id = ownerIdValue,
                 Username = "testuser",

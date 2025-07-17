@@ -1,0 +1,11 @@
+---
+description: TaskHub Error-Driven Learning & Pattern Enforcement
+alwaysApply: false
+---
+- Classify errors (compilation, runtime, pattern violation, TaskHub-specific) and analyze root cause.
+- Formulate and store corrective patterns in session memory.
+- Apply learned patterns proactively before generating code.
+- Validate all code against TaskHub conventions and prevent regression.
+- Critical patterns: Async-first backend, Zod type safety, SignalR consistency, endpoint security.
+- Important: TDD compliance, performance, error boundaries.
+- Preferential: File size <200 lines, naming conventions, JSDoc for complex logic.

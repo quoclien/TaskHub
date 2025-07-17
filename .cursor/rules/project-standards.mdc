@@ -1,0 +1,11 @@
+---
+description: TaskHub Project Standards & Development Principles
+alwaysApply: true
+---
+
+- All work must follow TDD (Red-Green-Refactor).
+- Use PNPM for all dependency management and scripts.
+- All code must pass CI quality gates: dependency sync, type checking, linting, and tests.
+- Monorepo structure: apps/web (frontend), apps/api (backend), packages/shared (types/utilities).
+- Tech stack: React 19, Next.js 15.3, TypeScript 5.6, TanStack Query, Zustand, Shadcn/ui, Tailwind, ASP.NET Core 9, EF Core 9, PostgreSQL, SignalR.
+- Key patterns: RESTful APIs, JWT auth, server components, optimistic UI, repository pattern, snake_case DB columns.
