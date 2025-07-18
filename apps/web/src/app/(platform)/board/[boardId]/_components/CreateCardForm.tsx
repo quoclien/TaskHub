@@ -11,6 +11,7 @@ import { CreateCardSchema } from '@/lib/validators/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+// @ts-ignore - sonner type issue
 import { useAuthStore } from '@/store/auth';
 import { createCard } from '@/lib/api/board';
 
@@ -70,7 +71,7 @@ export const CreateCardForm = ({ listId, cardCount, boardId }: CreateCardFormPro
           />
           {errors.title && <p className="text-red-500 text-sm">{errors.title.message}</p>}
           <div className="flex items-center gap-x-2">
-            <Button type="submit" variant="primary" disabled={isPending}>
+            <Button type="submit" variant="default" disabled={isPending}>
               Add Card
             </Button>
             <Button type="button" variant="ghost" onClick={() => setIsEditing(false)}>

@@ -25,6 +25,22 @@ declare module 'sonner' {
     remove: (toastId?: string | number) => void;
   }
 
-  const toast: ToastFunction;
-  export default toast;
+  export interface ToasterProps {
+    position?: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
+    richColors?: boolean;
+    expand?: boolean;
+    visibleToasts?: number;
+    closeButton?: boolean;
+    toastOptions?: ToastOptions;
+    className?: string;
+    style?: React.CSSProperties;
+    offset?: string | number;
+    theme?: 'light' | 'dark' | 'system';
+    invert?: boolean;
+    pauseWhenPageIsHidden?: boolean;
+    cn?: (...classes: any[]) => string;
+  }
+
+  export const Toaster: React.ComponentType<ToasterProps>;
+  export const toast: ToastFunction;
 }

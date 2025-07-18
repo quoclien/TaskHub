@@ -18,6 +18,8 @@ export interface Board {
   id: string;
   title: string;
   description?: string | null;
-  isPublic: boolean;
-  lists: List[];
+  isPublic?: boolean;
+  created_at: string;
+  updated_at: string;
+  lists?: List[];
 }
