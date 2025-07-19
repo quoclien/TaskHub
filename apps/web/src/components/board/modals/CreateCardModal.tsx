@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
 // External dependencies
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { z } from 'zod';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
 // @ts-ignore - sonner type issue
 
 // Internal dependencies
@@ -34,14 +34,16 @@ import { useAuthStore } from '@/hooks/useAuthStore';
 
 // Types and Schema
 const CreateCardSchema = z.object({
-  title: z.string()
+  title: z
+    .string()
     .min(1, 'Card title is required')
     .max(200, 'Card title must be less than 200 characters')
     .trim(),
-  description: z.string()
+  description: z
+    .string()
     .max(1000, 'Description must be less than 1000 characters')
     .optional()
-    .transform(val => val === '' ? undefined : val),
+    .transform((val) => (val === '' ? undefined : val)),
 });
 
 type CreateCardFormData = z.infer<typeof CreateCardSchema>;
@@ -56,24 +58,24 @@ interface CreateCardModalProps {
 
 /**
  * CreateCardModal Component
- * 
+ *
  * A modal dialog for creating new cards with title and description.
  * Includes form validation and optimistic updates.
  */
-export function CreateCardModal({ 
-  listId, 
-  boardId, 
-  cardCount, 
-  children, 
-  onSuccess 
+export function CreateCardModal({
+  listId,
+  boardId,
+  cardCount,
+  children,
+  onSuccess,
 }: CreateCardModalProps) {
   // State
   const [isOpen, setIsOpen] = useState(false);
-  
+
   // Hooks
   const { token } = useAuthStore();
   const queryClient = useQueryClient();
-  
+
   // Form
   const form = useForm<CreateCardFormData>({
     resolver: zodResolver(CreateCardSchema),
@@ -90,18 +92,21 @@ export function CreateCardModal({
         throw new Error('Not authenticated');
       }
 
-      const response = await fetch(`http://localhost:5204/api/boards/${boardId}/lists/${listId}/cards`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: data.title,
-          description: data.description,
-          position: cardCount,
-        }),
-      });
+      const response = await fetch(
+        `http://localhost:5204/api/boards/${boardId}/lists/${listId}/cards`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: data.title,
+            description: data.description,
+            position: cardCount,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Failed to create card');
@@ -112,14 +117,14 @@ export function CreateCardModal({
     onSuccess: () => {
       // Invalidate board query to refresh the cards
       queryClient.invalidateQueries({ queryKey: ['board', boardId] });
-      
+
       // Reset form and close modal
       form.reset();
       setIsOpen(false);
-      
+
       // Show success toast
       toast.success('Card created successfully!');
-      
+
       // Call optional success callback
       onSuccess?.();
     },
@@ -148,7 +153,10 @@ export function CreateCardModal({
     }
 
     return (
-      <Button variant="ghost" size="sm">
+      <Button
+        variant='ghost'
+        size='sm'
+      >
         Add Card
       </Button>
     );
@@ -156,12 +164,13 @@ export function CreateCardModal({
 
   // Main Component
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        {renderTrigger()}
-      </DialogTrigger>
-      
-      <DialogContent className="sm:max-w-lg">
+    <Dialog
+      open={isOpen}
+      onOpenChange={handleOpenChange}
+    >
+      <DialogTrigger asChild>{renderTrigger()}</DialogTrigger>
+
+      <DialogContent className='sm:max-w-lg'>
         <DialogHeader>
           <DialogTitle>Create New Card</DialogTitle>
           <DialogDescription>
@@ -170,16 +179,19 @@ export function CreateCardModal({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className='space-y-6'
+          >
             <FormField
               control={form.control}
-              name="title"
+              name='title'
               render={({ field }: any) => (
                 <FormItem>
                   <FormLabel>Card Title</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter card title..."
+                      placeholder='Enter card title...'
                       {...field}
                       disabled={createCardMutation.isPending}
                       autoFocus
@@ -192,13 +204,13 @@ export function CreateCardModal({
 
             <FormField
               control={form.control}
-              name="description"
+              name='description'
               render={({ field }: any) => (
                 <FormItem>
                   <FormLabel>Description (Optional)</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Enter card description..."
+                      placeholder='Enter card description...'
                       rows={3}
                       {...field}
                       disabled={createCardMutation.isPending}
@@ -211,15 +223,17 @@ export function CreateCardModal({
 
             <DialogFooter>
               <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsOpen(false)}
+                type='button'
+                variant='outline'
+                onClick={() => {
+                  setIsOpen(false);
+                }}
                 disabled={createCardMutation.isPending}
               >
                 Cancel
               </Button>
               <Button
-                type="submit"
+                type='submit'
                 disabled={createCardMutation.isPending}
               >
                 {createCardMutation.isPending ? 'Creating...' : 'Create Card'}
@@ -230,4 +244,4 @@ export function CreateCardModal({
       </DialogContent>
     </Dialog>
   );
-} 
+}

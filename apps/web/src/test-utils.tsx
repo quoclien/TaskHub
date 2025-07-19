@@ -1,10 +1,12 @@
-import { ReactElement, ReactNode } from 'react';
-import { render, RenderOptions } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter } from 'react-router-dom';
-import { server } from './mocks/server';
+import type { RenderOptions } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { http } from 'msw';
+import type { ReactElement, ReactNode } from 'react';
+import { BrowserRouter } from 'react-router-dom';
+
+import { server } from './mocks/server';
 
 type HttpMethod = 'get' | 'post' | 'put' | 'delete' | 'patch';
 
@@ -18,10 +20,7 @@ declare global {
 }
 
 // Create a custom render function that includes providers
-const customRender = (
-  ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>
-) => {
+const customRender = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) => {
   // Create a new QueryClient for each test
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -33,9 +32,7 @@ const customRender = (
 
   const Wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        {children}
-      </BrowserRouter>
+      <BrowserRouter>{children}</BrowserRouter>
     </QueryClientProvider>
   );
 
@@ -57,11 +54,15 @@ export * from '@testing-library/user-event';
 export { server };
 
 // Helper to wait for loading to finish
-export const waitForLoadingToFinish = () =>
-  new Promise((resolve) => setTimeout(resolve, 0));
+export const waitForLoadingToFinish = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 // Helper to mock API errors
-export const mockApiError = (method: HttpMethod, endpoint: string, status = 500, error: unknown = {}) => {
+export const mockApiError = (
+  method: HttpMethod,
+  endpoint: string,
+  status = 500,
+  error: unknown = {}
+) => {
   const handler = http[method](endpoint, () => {
     return new Response(JSON.stringify(error), {
       status,
@@ -70,7 +71,7 @@ export const mockApiError = (method: HttpMethod, endpoint: string, status = 500,
       },
     });
   });
-  
+
   server.use(handler);
   return handler;
 };

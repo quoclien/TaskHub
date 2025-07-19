@@ -1,7 +1,8 @@
 // Import test utilities
 import '@testing-library/jest-dom/vitest';
-import { afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
+import { afterEach, vi } from 'vitest';
+
 import { server } from './src/mocks/server';
 
 // Start the MSW server before all tests
@@ -23,16 +24,18 @@ afterAll(() => {
 
 // Mock global objects if needed
 // Mock matchMedia
-window.matchMedia = window.matchMedia || function() {
-  return {
-    matches: false,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
+window.matchMedia =
+  window.matchMedia ||
+  function () {
+    return {
+      matches: false,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    };
   };
-};
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({

@@ -2,4 +2,4 @@ import { BoardComponentsShowcase } from '@/components/board/BoardComponentsShowc
 
 export default function TestComponentsPage() {
   return <BoardComponentsShowcase />;
-} 
+}

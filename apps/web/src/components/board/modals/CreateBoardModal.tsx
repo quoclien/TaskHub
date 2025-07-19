@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
 // External dependencies
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { z } from 'zod';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
 // @ts-ignore - sonner type issue
 
 // Internal dependencies
@@ -33,7 +33,8 @@ import { useAuthStore } from '@/hooks/useAuthStore';
 
 // Types and Schema
 const CreateBoardSchema = z.object({
-  title: z.string()
+  title: z
+    .string()
     .min(1, 'Board title is required')
     .max(100, 'Board title must be less than 100 characters')
     .trim(),
@@ -48,18 +49,18 @@ interface CreateBoardModalProps {
 
 /**
  * CreateBoardModal Component
- * 
+ *
  * A modal dialog for creating new boards with form validation.
  * Includes optimistic updates and proper error handling.
  */
 export function CreateBoardModal({ children, onSuccess }: CreateBoardModalProps) {
   // State
   const [isOpen, setIsOpen] = useState(false);
-  
+
   // Hooks
   const { token } = useAuthStore();
   const queryClient = useQueryClient();
-  
+
   // Form
   const form = useForm<CreateBoardFormData>({
     resolver: zodResolver(CreateBoardSchema),
@@ -78,7 +79,7 @@ export function CreateBoardModal({ children, onSuccess }: CreateBoardModalProps)
       const response = await fetch('http://localhost:5204/api/Boards', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
@@ -93,14 +94,14 @@ export function CreateBoardModal({ children, onSuccess }: CreateBoardModalProps)
     onSuccess: () => {
       // Invalidate boards query to refresh the list
       queryClient.invalidateQueries({ queryKey: ['boards'] });
-      
+
       // Reset form and close modal
       form.reset();
       setIsOpen(false);
-      
+
       // Show success toast
       toast.success('Board created successfully!');
-      
+
       // Call optional success callback
       onSuccess?.();
     },
@@ -128,21 +129,18 @@ export function CreateBoardModal({ children, onSuccess }: CreateBoardModalProps)
       return children;
     }
 
-    return (
-      <Button>
-        Create Board
-      </Button>
-    );
+    return <Button>Create Board</Button>;
   };
 
   // Main Component
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        {renderTrigger()}
-      </DialogTrigger>
-      
-      <DialogContent className="sm:max-w-md">
+    <Dialog
+      open={isOpen}
+      onOpenChange={handleOpenChange}
+    >
+      <DialogTrigger asChild>{renderTrigger()}</DialogTrigger>
+
+      <DialogContent className='sm:max-w-md'>
         <DialogHeader>
           <DialogTitle>Create New Board</DialogTitle>
           <DialogDescription>
@@ -151,16 +149,19 @@ export function CreateBoardModal({ children, onSuccess }: CreateBoardModalProps)
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className='space-y-6'
+          >
             <FormField
               control={form.control}
-              name="title"
+              name='title'
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Board Title</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter board title..."
+                      placeholder='Enter board title...'
                       {...field}
                       disabled={createBoardMutation.isPending}
                       autoFocus
@@ -173,15 +174,17 @@ export function CreateBoardModal({ children, onSuccess }: CreateBoardModalProps)
 
             <DialogFooter>
               <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsOpen(false)}
+                type='button'
+                variant='outline'
+                onClick={() => {
+                  setIsOpen(false);
+                }}
                 disabled={createBoardMutation.isPending}
               >
                 Cancel
               </Button>
               <Button
-                type="submit"
+                type='submit'
                 disabled={createBoardMutation.isPending}
               >
                 {createBoardMutation.isPending ? 'Creating...' : 'Create Board'}
@@ -192,4 +195,4 @@ export function CreateBoardModal({ children, onSuccess }: CreateBoardModalProps)
       </DialogContent>
     </Dialog>
   );
-} 
+}

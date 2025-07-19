@@ -10,7 +10,9 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       token: null,
-      setToken: (token) => set({ token }),
+      setToken: (token) => {
+        set({ token });
+      },
     }),
     {
       name: 'auth-storage', // name of the item in storage (must be unique)

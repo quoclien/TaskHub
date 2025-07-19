@@ -17,28 +17,146 @@
 
 ### 2.1. Tech Stack
 
-- **Frontend**: Next.js 15.3, React 19, TypeScript 5.6, Shadcn/ui, TanStack Query v5, Zod, @dnd-kit, NextAuth.js v5.
-- **Backend**: ASP.NET Core 9, EF Core 9, PostgreSQL, SignalR, Serilog.
-- **DevOps & Tools**: pnpm, Docker, GitHub Actions, ESLint, Prettier, Vitest, xUnit.
+- **Frontend**: 
+  - Next.js 15.3.4 (App Router)
+  - React 19 with Server Components
+  - TypeScript 5.3.3 (strict mode)
+  - TanStack Query v5.8.1
+  - Zod 3.25.67 for schema validation
+  - Radix UI primitives
+  - Tailwind CSS with shadcn/ui
+  - Zustand for client state management
+
+- **Backend**: 
+  - .NET 8.0 Web API
+  - Entity Framework Core 8.0
+  - PostgreSQL 15+ with Npgsql 9.0.3
+  - ASP.NET Core Identity with JWT
+  - SignalR for real-time features
+  - Serilog for structured logging
+  - FluentValidation 11.3.0
+  - AutoMapper 12.0.1
+
+- **Testing**:
+  - Vitest 1.3.1 (unit & integration)
+  - React Testing Library
+  - MSW 2.10.2 (API mocking)
+  - xUnit for .NET unit tests
+
+- **DevOps & Tools**:
+  - pnpm 9.15.4 (workspaces)
+  - ESLint 9.30.0 + Prettier 3.0.0
+  - TypeScript 5.3.3
+  - Swagger/OpenAPI 6.5.0
+  - GitHub Actions for CI/CD
+  - Docker for containerization
 
 ### 2.2. Monorepo & File Structure
 
-- **Strategy**: We use a `pnpm` workspace monorepo to manage our `apps` and `packages`.
-- **Next.js & TypeScript**: We **do not** use TypeScript Project References (`composite: true`). Instead, we use `transpilePackages` in `next.config.js` to compile workspace packages, ensuring Hot Module Replacement (HMR) works correctly.
-- **Structure Diagram**:
+- **Monorepo Strategy**:
+  - pnpm workspaces for package management
+  - Shared code in `packages/` directory
+  - Independent versioning for each app/package
+  - Shared tooling and configurations
+
+- **TypeScript Setup**:
+  - Strict mode enabled across all projects
+  - Path aliases for cleaner imports
+  - Shared `tsconfig.base.json` with common compiler options
+  - Next.js uses `transpilePackages` for workspace packages
+
+- **Project Structure**:
   ```
   taskhub/
   ├── apps/
-  │   ├── web/           # Next.js frontend
-  │   └── api/           # ASP.NET Core backend
+  │   ├── web/                  # Next.js 15.3.4 frontend
+  │   │   ├── src/
+  │   │   │   ├── app/          # App Router
+  │   │   │   ├── components/   # Shared components
+  │   │   │   ├── lib/         # Utilities and hooks
+  │   │   │   └── styles/      # Global styles
+  │   │   └── public/          # Static assets
+  │   │
+  │   └── api/                  # .NET 8.0 Web API
+  │       ├── Controllers/      # API endpoints
+  │       ├── Data/            # DbContext and configurations
+  │       ├── Models/          # Domain models
+  │       ├── Services/        # Business logic
+  │       └── appsettings.json # Configuration
+  │
   ├── packages/
-  │   ├── shared/        # Shared TS types (Zod schemas)
-  │   └── ui/            # Shared React components (future)
-  ├── .github/           # CI/CD workflows
-  └── docker-compose.yml # Local development
+  │   └── shared/              # Shared TypeScript types and utilities
+  │       ├── src/
+  │       │   ├── types/       # Shared TypeScript types
+  │       │   ├── schemas/     # Zod schemas
+  │       │   └── utils/       # Shared utilities
+  │       └── package.json     # @taskhub/shared package
+  │
+  ├── .github/                # GitHub Actions workflows
+  ├── .husky/                # Git hooks
+  ├── .vscode/               # Workspace settings
+  ├── docker-compose.yml     # Local development
+  ├── package.json           # Root package.json
+  └── README.md              # Project documentation
   ```
 
-### 2.3. Data Model
+- **Key Configuration Files**:
+  - `package.json`: Root package with workspace configuration
+  - `pnpm-workspace.yaml`: Defines workspace packages
+  - `.eslintrc.js`: Shared ESLint configuration
+  - `.prettierrc`: Code formatting rules
+  - `tsconfig.base.json`: Base TypeScript configuration
+
+### 2.3. Next.js App Router Conventions
+
+- **Routing Structure**:
+  ```
+  src/app/
+  ├── (auth)/                  # Authentication layout
+  │   ├── sign-in/            # Sign in page
+  │   └── sign-up/            # Sign up page
+  │
+  ├── (platform)/             # Authenticated app layout
+  │   ├── boards/             # Boards list
+  │   │   └── [boardId]/      # Single board view
+  │   │       ├── page.tsx    # Board page
+  │   │       └── _components/ # Board-specific components
+  │   └── settings/           # User settings
+  │
+  ├── _components/            # App-wide components (not routes)
+  ├── _lib/                   # Shared utilities and hooks
+  ├── api/                    # API routes
+  ├── favicon.ico
+  ├── globals.css
+  ├── layout.tsx              # Root layout
+  └── page.tsx                # Home page
+  ```
+
+- **Key Conventions**:
+  - **Layouts**: Use `layout.tsx` for shared UI across routes
+  - **Loading States**: `loading.tsx` for Suspense boundaries
+  - **Error Handling**: `error.tsx` for error boundaries
+  - **Not Found**: `not-found.tsx` for 404 pages
+  - **Route Groups**: `(folderName)` for logical grouping
+  - **Dynamic Segments**: `[param]` for dynamic routes
+  - **Private Folders**: `_prefix` for non-route directories
+  - **Loading States**: Built-in Suspense with `loading.tsx`
+  - **Error Boundaries**: Automatic with `error.tsx`
+
+- **Data Fetching**:
+  - **Server Components**: Default for data fetching
+  - **Client Components**: Marked with `'use client'`
+  - **Data Fetching**: `fetch` with Next.js caching
+  - **Mutations**: Server Actions or API routes
+
+- **Performance Features**:
+  - Automatic Code Splitting
+  - Image Optimization
+  - Font Optimization
+  - Script Optimization
+  - Route Prefetching
+
+### 2.4. Data Model
 
 - **User**: Authentication and profile information.
 - **Board**: Project workspace with members.
@@ -46,12 +164,12 @@
 - **Card**: Tasks with metadata stored in PostgreSQL JSONB.
 - **Comment**: Threaded discussions on cards.
 
-### 2.4. Authentication & Real-time
+### 2.5. Authentication & Real-time
 
 - **Authentication Flow**: `NextAuth.js` handles the OAuth flow and creates a JWT, which is stored in a secure, HTTP-only cookie. A custom ASP.NET Core middleware validates the JWT on every request and SignalR connection.
 - **Real-time Collaboration**: `SignalR` hubs manage group-based messaging for optimistic updates, user presence, and typing indicators. We use a "last-writer-wins" concurrency strategy.
 
-### 2.5. API Design & Performance
+### 2.6. API Design & Performance
 
 - **API Design**: We use RESTful endpoints with OpenAPI documentation, consistent error handling, rate limiting, and health check endpoints.
 - **Performance Strategy**: We focus on client-side caching with TanStack Query, EF Core query optimization, image optimization, and code splitting.
@@ -78,15 +196,69 @@
 
 ### 4.2. Testing Strategy
 
-- **TDD**: All new features must begin with a failing test.
-- **Scope**: Unit tests for logic (Vitest/xUnit), component tests for UI (Vitest/Testing Library), and integration tests for API endpoints.
-- **Maintenance**: Tests are a part of the feature. No PR is complete without passing and updated tests. Aim for high coverage on core logic.
+- **Testing Pyramid**:
+  - **Unit Tests (70%)**: Test individual functions and components in isolation
+  - **Integration Tests (20%)**: Test component interactions and API integrations
+  - **E2E Tests (10%)**: Test critical user flows
+
+- **Frontend Testing**:
+  - **Unit Tests**: Vitest for pure functions and hooks
+  - **Component Tests**: React Testing Library + Vitest
+  - **Mocking**: MSW for API mocking
+  - **Coverage**: Aim for 80%+ coverage on business logic
+
+- **Backend Testing**:
+  - **Unit Tests**: xUnit for business logic
+  - **Integration Tests**: Test API endpoints with TestServer
+  - **Database Tests**: Test database operations with SQLite in-memory
+
+- **Test Organization**:
+  - Co-locate test files with source files (e.g., `Component.test.tsx`)
+  - Use `__tests__` directories for test utilities
+  - Follow the "Arrange-Act-Assert" pattern
+
+- **Test Data Management**:
+  - Use factories for test data generation
+  - Clean up test data after each test
+  - Use snapshots sparingly, prefer explicit assertions
 
 ### 4.3. Security
 
-- **Validation**: Zod for frontend and API contract validation; FluentValidation for backend business logic.
-- **Backend**: Prevent SQL injection with EF Core's parameterized queries.
-- **Frontend**: Implement a strict Content Security Policy (CSP) to prevent XSS.
+- **Authentication & Authorization**:
+  - JWT-based authentication
+  - Role-based access control (RBAC)
+  - Secure cookie settings
+  - CSRF protection
+
+- **Input Validation**:
+  - Frontend: Zod schema validation
+  - Backend: FluentValidation + ModelState validation
+  - API: Strongly-typed API contracts
+
+- **Security Headers**:
+  - Content Security Policy (CSP)
+  - X-Content-Type-Options
+  - X-Frame-Options
+  - X-XSS-Protection
+  - Strict-Transport-Security
+
+- **Rate Limiting**:
+  - Global rate limiting
+  - Endpoint-specific rate limiting
+  - IP-based throttling
+
+- **Data Protection**:
+  - Parameterized queries with EF Core
+  - Sensitive data encryption
+  - Secure password hashing (BCrypt)
+  - Secure storage of secrets
+
+- **API Security**:
+  - HTTPS required
+  - API versioning
+  - Request validation
+  - Response sanitization
+  - CORS policy configuration
 
 ### 4.4. Conventions
 
@@ -99,22 +271,56 @@
 
 ## 5. Knowledge Base: Resolved Issues & Error Patterns
 
-*This section is a log of problems we've solved. Review this to avoid repeating past mistakes.*
+*This section documents common issues and their solutions to help with troubleshooting and knowledge sharing.*
 
 ### 5.1. Resolved Issues
 
 | Problem | Solution & Context |
 | :--- | :--- |
-| **Vite/Vitest Version Mismatch** | **Solution**: Standardized all Vite-related dependencies in the root `package.json`. **Context**: Inconsistent versions caused cryptic build and test failures. Centralizing versions with `pnpm` workspaces resolved this. |
-| *Add new issues here* | *...as they are resolved* |
+| **Vite/Vitest Version Mismatch** | **Solution**: Standardized Vite-related dependencies in root `package.json`. **Context**: Inconsistent versions caused build/test failures. Fixed by centralizing versions with pnpm workspaces. |
+| **.NET 8.0 Migration Issues** | **Solution**: Updated all NuGet packages to .NET 8.0 compatible versions. **Context**: Some packages had breaking changes in .NET 8.0 that required code updates. |
+| **MSW Interference with Vitest** | **Solution**: Configured MSW to only run in test environment. **Context**: MSW was causing issues during development server startup. |
 
-### 5.2. Known Error Patterns & Fixes
+### 5.2. Common Error Patterns & Fixes
 
 | Error Message / Pattern | Common Cause & Fix |
 | :--- | :--- |
-| **`The type or namespace name '...' could not be found` in C#** | **Cause**: Missing `using` statement. **Fix**: Ensure `using Microsoft.AspNetCore.Mvc;` in controllers, `using Microsoft.EntityFrameworkCore;` in DbContext files, etc. |
-| **Next.js Hydration Error** | **Cause**: Mismatch between server-rendered and client-rendered HTML. **Fix**: Use `useEffect` for client-side-only code or dynamic imports with `ssr: false`. |
-| **EF Core Migration PK Error** | **Cause**: An entity is missing a primary key. **Fix**: Ensure every entity has a property like `public int Id { get; set; }`. |
+| **`"Invalid hook call" in React** | **Cause**: Hooks called outside of a component or multiple React instances. **Fix**: Ensure single React version and proper component structure. |
+| **`Npgsql.PostgresException: 42P01: relation "__EFMigrationsHistory" does not exist`** | **Cause**: Database migrations not applied. **Fix**: Run `dotnet ef database update`. |
+| **`TypeError: fetch failed` in Next.js** | **Cause**: Missing or incorrect API route handler. **Fix**: Ensure route handler exists and exports proper HTTP methods. |
+| **`Error: No QueryClient set`** | **Cause**: Missing QueryClientProvider. **Fix**: Wrap app with QueryProvider in root layout. |
+| **`CS1061: 'Type' does not contain a definition for 'Method'`** | **Cause**: Missing using directive or incorrect type reference. **Fix**: Add proper using statements or check for typos. |
+
+### 5.3. Performance Optimization Tips
+
+- **Frontend**:
+  - Use `React.memo` for expensive components
+  - Implement code splitting with dynamic imports
+  - Optimize images with Next.js Image component
+  - Use `useCallback` and `useMemo` appropriately
+
+- **Backend**:
+  - Use `AsNoTracking()` for read-only queries
+  - Implement pagination for large datasets
+  - Use compiled queries for frequently executed queries
+  - Enable query caching where appropriate
+
+### 5.4. Development Workflow Tips
+
+- **Hot Reloading**:
+  - Frontend: `pnpm dev` for Next.js development server
+  - Backend: `dotnet watch` for .NET hot reload
+
+- **Database Migrations**:
+  - Create: `dotnet ef migrations add <name>`
+  - Apply: `dotnet ef database update`
+  - Remove: `dotnet ef migrations remove`
+
+- **Testing**:
+  - Run all tests: `pnpm test`
+  - Run specific test file: `pnpm test path/to/test.tsx`
+  - Update snapshots: `pnpm test -u`
+  - Coverage report: `pnpm test:coverage`
 
 ---
 

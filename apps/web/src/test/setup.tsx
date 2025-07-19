@@ -1,7 +1,7 @@
 // Import vitest-dom for custom matchers
 import '@testing-library/jest-dom/vitest';
-import { vi, expect, afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
+import { vi, expect, afterEach } from 'vitest';
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
@@ -35,7 +35,7 @@ vi.mock('next/navigation', () => ({
 // Mock next/head
 vi.mock('next/head', () => ({
   __esModule: true,
-  default: ({ children }: { children: Array<React.ReactElement> }) => {
+  default: ({ children }: { children: React.ReactElement[] }) => {
     return <>{children}</>;
   },
 }));

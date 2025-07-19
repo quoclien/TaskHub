@@ -1,7 +1,13 @@
 declare module 'sonner' {
   export interface ToastOptions {
     duration?: number;
-    position?: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
+    position?:
+      | 'top-left'
+      | 'top-center'
+      | 'top-right'
+      | 'bottom-left'
+      | 'bottom-center'
+      | 'bottom-right';
     className?: string;
     style?: React.CSSProperties;
     icon?: React.ReactNode;
@@ -17,16 +23,19 @@ declare module 'sonner' {
     (message: string | React.ReactNode, options?: ToastOptions): string | number;
     success: (message: string | React.ReactNode, options?: ToastOptions) => string | number;
     error: (message: string | React.ReactNode, options?: ToastOptions) => string | number;
-    promise: <T>(
-      promise: Promise<T>,
-      options: ToastPromiseOptions<T>,
-    ) => Promise<T>;
+    promise: <T>(promise: Promise<T>, options: ToastPromiseOptions<T>) => Promise<T>;
     dismiss: (toastId?: string | number) => void;
     remove: (toastId?: string | number) => void;
   }
 
   export interface ToasterProps {
-    position?: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
+    position?:
+      | 'top-left'
+      | 'top-center'
+      | 'top-right'
+      | 'bottom-left'
+      | 'bottom-center'
+      | 'bottom-right';
     richColors?: boolean;
     expand?: boolean;
     visibleToasts?: number;
