@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuthStore } from '@/hooks/useAuthStore';
+import { developmentConfig, getApiUrl, isDevelopment } from '@/config/development';
 
 const SignInPage = () => {
   const router = useRouter();
@@ -25,15 +26,25 @@ const SignInPage = () => {
 
     try {
       // In development, we use the dev token endpoint
-      if (process.env.NODE_ENV === 'development') {
-        const response = await fetch('http://localhost:5204/api/Development/generate-token');
-        if (!response.ok) {
-          throw new Error('Failed to get development token');
+      if (isDevelopment()) {
+        try {
+          // Try the correct development port first
+          const response = await fetch(getApiUrl(developmentConfig.api.developmentTokenEndpoint));
+          if (!response.ok) {
+            throw new Error('Failed to get development token');
+          }
+          const { token } = await response.json();
+          setToken(token);
+          router.push('/boards');
+          return;
+        } catch (error) {
+          console.error('Development token fetch failed:', error);
+          console.warn(developmentConfig.messages.backendUnavailable);
+          // Fallback: create a mock token for development
+          setToken(developmentConfig.features.mockToken);
+          router.push('/boards');
+          return;
         }
-        const { token } = await response.json();
-        setToken(token);
-        router.push('/boards');
-        return;
       }
 
       // In production, use real authentication
@@ -84,10 +95,10 @@ const SignInPage = () => {
               </div>
             )}
 
-            {process.env.NODE_ENV === 'development' && (
+            {isDevelopment() && (
               <div className='bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3'>
                 <p className='text-sm text-blue-600 dark:text-blue-400'>
-                  <strong>Development Mode:</strong> Click "Sign In" to get a development token
+                  <strong>Development Mode:</strong> {developmentConfig.messages.developmentMode}
                 </p>
               </div>
             )}
@@ -111,7 +122,7 @@ const SignInPage = () => {
                 }}
                 placeholder='Enter your email'
                 className='w-full'
-                disabled={process.env.NODE_ENV === 'development'}
+                disabled={isDevelopment()}
               />
             </div>
 
@@ -135,7 +146,7 @@ const SignInPage = () => {
                   }}
                   placeholder='Enter your password'
                   className='w-full pr-12'
-                  disabled={process.env.NODE_ENV === 'development'}
+                  disabled={isDevelopment()}
                 />
                 <button
                   type='button'
@@ -143,7 +154,7 @@ const SignInPage = () => {
                   onClick={() => {
                     setShowPassword(!showPassword);
                   }}
-                  disabled={process.env.NODE_ENV === 'development'}
+                  disabled={isDevelopment()}
                 >
                   {showPassword ? (
                     <EyeOff className='h-4 w-4 text-gray-400' />

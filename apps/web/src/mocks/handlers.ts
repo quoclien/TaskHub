@@ -88,13 +88,20 @@ export const handlers = [
 
 // Browser-specific exports (only in browser environment)
 if (typeof window !== 'undefined') {
-  import('msw/browser')
-    .then(({ setupWorker }) => {
-      const worker = setupWorker(...handlers);
-      // @ts-ignore - Make worker available globally for browser tests
-      window.msw = { worker };
-    })
-    .catch(console.error);
+  // Only setup worker in browser environment
+  try {
+    import('msw/browser')
+      .then(({ setupWorker }) => {
+        const worker = setupWorker(...handlers);
+        // @ts-ignore - Make worker available globally for browser tests
+        window.msw = { worker };
+      })
+      .catch(() => {
+        // Silently ignore errors in test environment
+      });
+  } catch {
+    // Silently ignore errors in test environment
+  }
 }
 
 export const resetMockTasks = () => {

@@ -25,7 +25,7 @@ export function SkeletonText({ lines = 3, className }: SkeletonTextProps) {
     <div className={cn('space-y-2', className)}>
       {Array.from({ length: lines }, (_, index) => (
         <div
-          key={index}
+          key={`skeleton-text-${index}`}
           className={cn(
             'h-4 bg-muted rounded animate-pulse',
             // Make lines slightly different widths for realism
@@ -77,7 +77,7 @@ export function SkeletonList({ className }: { className?: string }) {
       <div className='space-y-2'>
         {Array.from({ length: 3 }, (_, index) => (
           <div
-            key={index}
+            key={`skeleton-card-${index}`}
             className='h-16 bg-white rounded-md shadow animate-pulse'
           />
         ))}

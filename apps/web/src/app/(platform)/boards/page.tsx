@@ -59,8 +59,16 @@ const BoardCard = ({
           e.stopPropagation();
           onDelete(board.id, board.title);
         }}
-        className='absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400'
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            onDelete(board.id, board.title);
+          }
+        }}
+        className='absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2'
         title='Delete board'
+        tabIndex={0}
       >
         <Trash2 className='w-4 h-4' />
       </button>

@@ -9,7 +9,7 @@ describe('BoardView', () => {
   it('renders children when not loading', () => {
     render(
       <BoardView>
-        <div data-testid="test-child">Test Content</div>
+        <div data-testid='test-child'>Test Content</div>
       </BoardView>
     );
 
@@ -17,7 +17,11 @@ describe('BoardView', () => {
   });
 
   it('renders loading skeleton when loading', () => {
-    render(<BoardView isLoading={true} />);
+    render(
+      <BoardView isLoading={true}>
+        <div data-testid='test-child'>Test Content</div>
+      </BoardView>
+    );
 
     // Should render skeleton lists with the correct classes
     const skeletonElements = document.querySelectorAll('.bg-gray-200');
@@ -26,14 +30,22 @@ describe('BoardView', () => {
 
   it('applies custom className', () => {
     const customClass = 'custom-class';
-    render(<BoardView className={customClass} />);
+    render(
+      <BoardView className={customClass}>
+        <div data-testid='test-child'>Test Content</div>
+      </BoardView>
+    );
 
     const boardView = document.querySelector('.custom-class');
     expect(boardView).toBeInTheDocument();
   });
 
   it('has correct default classes', () => {
-    render(<BoardView />);
+    render(
+      <BoardView>
+        <div data-testid='test-child'>Test Content</div>
+      </BoardView>
+    );
 
     // The DndContext wraps the main div, so we need to get the second div
     const boardView = document.querySelectorAll('div')[1];
@@ -45,7 +57,11 @@ describe('BoardView', () => {
   });
 
   it('has correct scroll snap style', () => {
-    render(<BoardView />);
+    render(
+      <BoardView>
+        <div data-testid='test-child'>Test Content</div>
+      </BoardView>
+    );
 
     // The DndContext wraps the main div, so we need to get the second div
     const boardView = document.querySelectorAll('div')[1];
@@ -56,7 +72,7 @@ describe('BoardView', () => {
     const mockOnMoveCard = vi.fn();
     render(
       <BoardView onMoveCard={mockOnMoveCard}>
-        <div data-testid="test-child">Test Content</div>
+        <div data-testid='test-child'>Test Content</div>
       </BoardView>
     );
 
@@ -65,7 +81,11 @@ describe('BoardView', () => {
   });
 
   it('renders DndContext wrapper', () => {
-    render(<BoardView />);
+    render(
+      <BoardView>
+        <div data-testid='test-child'>Test Content</div>
+      </BoardView>
+    );
 
     // Check that the DndContext is rendered (it should be the first div)
     const dndContext = document.querySelector('div');

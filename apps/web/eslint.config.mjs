@@ -1,3 +1,4 @@
+import globals from 'globals';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { FlatCompat } from '@eslint/eslintrc';
@@ -10,6 +11,7 @@ import nextPlugin from '@next/eslint-plugin-next';
 import importPlugin from 'eslint-plugin-import';
 import prettierConfig from 'eslint-config-prettier';
 import prettierPlugin from 'eslint-plugin-prettier';
+import tseslint from 'typescript-eslint';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -19,31 +21,20 @@ const compat = new FlatCompat({
   recommendedConfig: js.configs.recommended,
 });
 
-const eslintConfig = [
-  // Global ignores
+const eslintConfig = tseslint.config(
   {
-    ignores: ['node_modules/', '.next/'],
+    // Global ignores
+    ignores: ['node_modules/', '.next/', '**/*.cjs', '**/*.mjs'],
   },
 
   // Base JavaScript configuration
   js.configs.recommended,
 
   // TypeScript configurations
-  ...typescriptEslint.config({
-    files: ['**/*.ts', '**/*.tsx'],
-    extends: [
-      ...typescriptEslint.configs.strictTypeChecked,
-      ...typescriptEslint.configs.stylisticTypeChecked,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: true,
-        tsconfigRootDir: __dirname,
-      },
-    },
-  }),
+  ...typescriptEslint.configs.strictTypeChecked,
+  ...typescriptEslint.configs.stylisticTypeChecked,
 
-  // Prettier integration (must be after other configs to override them)
+  // Prettier integration
   prettierConfig,
   {
     plugins: {
@@ -67,12 +58,12 @@ const eslintConfig = [
     },
     languageOptions: {
       parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-        ecmaFeatures: {
-          jsx: true,
-        },
-        project: './tsconfig.json',
+        project: true,
+        tsconfigRootDir: __dirname,
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node,
       },
     },
     rules: {
@@ -83,8 +74,8 @@ const eslintConfig = [
       '@typescript-eslint/no-explicit-any': 'warn',
 
       // React rules
-      'react/react-in-jsx-scope': 'off', // Not needed with Next.js
-      'react/prop-types': 'off', // Not needed with TypeScript
+      'react/react-in-jsx-scope': 'off',
+      'react/prop-types': 'off',
       'react/display-name': 'off',
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
@@ -125,21 +116,21 @@ const eslintConfig = [
         version: 'detect',
       },
       'import/resolver': {
-        typescript: {},
-        node: {
-          extensions: ['.js', '.jsx', '.ts', '.tsx'],
+        typescript: {
+          project: './tsconfig.json',
         },
       },
     },
   },
+
   // Next.js specific rules
   {
     files: ['**/*.tsx'],
     rules: {
-      '@next/next/no-html-link-for-pages': 'off', // Handled by Next.js
-      '@next/next/no-img-element': 'off', // We'll use next/image
+      '@next/next/no-html-link-for-pages': 'off',
+      '@next/next/no-img-element': 'off',
     },
-  },
-];
+  }
+);
 
 export default eslintConfig;

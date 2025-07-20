@@ -1,10 +1,6 @@
 'use client';
 
 // External dependencies
-import React, {
-  forwardRef,
-  useState,
-} from 'react';
 import {
   DndContext,
   closestCenter,
@@ -22,6 +18,7 @@ import {
   sortableKeyboardCoordinates,
   horizontalListSortingStrategy,
 } from '@dnd-kit/sortable';
+import React, { forwardRef, useState } from 'react';
 
 // Internal dependencies
 import { SkeletonList } from '@/components/common/LoadingSkeleton';
@@ -95,7 +92,7 @@ export const BoardView = forwardRef<HTMLDivElement, BoardViewProps>(
 
     const handleDragEnd = (event: DragEndEvent) => {
       const { active, over } = event;
-      
+
       if (!over) {
         setActiveId(null);
         setActiveData(null);
@@ -117,17 +114,17 @@ export const BoardView = forwardRef<HTMLDivElement, BoardViewProps>(
         const lists = React.Children.toArray(children);
         const oldIndex = lists.findIndex((child: any) => child.props.id === active.id);
         const newIndex = lists.findIndex((child: any) => child.props.id === over.id);
-        
+
         if (oldIndex !== -1 && newIndex !== -1) {
           onMoveList?.(oldIndex, newIndex);
         }
       }
-      
+
       // Handle card moving between lists
       if (activeData.type === 'card') {
         const activeCardData = activeData as CardMeta;
         const overCardData = overData as CardMeta;
-        
+
         if (overData.type === 'list') {
           // Drop on list
           onMoveCard?.(active.id as string, over.id as string, 0);
@@ -145,7 +142,7 @@ export const BoardView = forwardRef<HTMLDivElement, BoardViewProps>(
     const renderLoadingState = () => (
       <>
         {Array.from({ length: 3 }, (_, index) => (
-          <SkeletonList key={index} />
+          <SkeletonList key={`skeleton-list-${index}`} />
         ))}
       </>
     );

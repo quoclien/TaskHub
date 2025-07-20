@@ -53,14 +53,7 @@ export function CardComponent({
   className,
 }: CardComponentProps) {
   // DnD Hooks
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
     data: {
       type: 'card',
@@ -146,6 +139,7 @@ export function CardComponent({
   // Main Component
   return (
     <div
+      key={id}
       ref={setNodeRef}
       style={style}
       {...attributes}

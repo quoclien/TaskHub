@@ -232,14 +232,17 @@ const mockLists = [
   },
 ];
 
-export const fetchBoardById = async (boardId: string, token: string | null = null): Promise<Board> => {
+export const fetchBoardById = async (
+  boardId: string,
+  token: string | null = null
+): Promise<Board> => {
   // In development, return mock data regardless of token
   if (process.env.NODE_ENV === 'development') {
     console.log('Using mock data for board:', boardId);
     await new Promise((resolve) => setTimeout(resolve, 500));
-    
+
     const board = mockBoards.find((b) => b.id === boardId);
-    
+
     if (!board) {
       throw new Error('Board not found');
     }

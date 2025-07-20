@@ -195,9 +195,9 @@ export function BoardComponentsShowcase() {
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
           {isLoading ? (
             <>
-              <SkeletonCard />
-              <SkeletonCard />
-              <SkeletonCard />
+              <SkeletonCard key="skeleton-1" />
+              <SkeletonCard key="skeleton-2" />
+              <SkeletonCard key="skeleton-3" />
             </>
           ) : (
             mockBoards.map((board) => (

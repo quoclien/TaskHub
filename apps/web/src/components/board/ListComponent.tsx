@@ -2,8 +2,8 @@
 
 // External dependencies
 import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { MoreHorizontal, Plus } from 'lucide-react';
 import { useState } from 'react';
 
@@ -71,14 +71,7 @@ export function ListComponent({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // DnD Hooks
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
     data: {
       type: 'list',
@@ -142,8 +135,8 @@ export function ListComponent({
   );
 
   const renderCards = () => {
-    const cardIds = cards.map(card => card.id);
-    
+    const cardIds = cards.map((card) => card.id);
+
     return (
       <div
         className={cn(
