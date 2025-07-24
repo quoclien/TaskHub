@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+- **Be Token-Efficient**: Summarize or trim context to retain only essential details for the task at hand.
+- **Be Concise**: Keep responses and explanations brief and to the point. Avoid verbosity unless the user explicitly requests more detail.
