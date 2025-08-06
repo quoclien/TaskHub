@@ -1,19 +1,42 @@
 import { test, expect } from '@playwright/experimental-ct-react';
+import type { Page } from '@playwright/test';
 import { BoardCard } from '@/components/board/BoardCard';
 import { ListComponent } from '@/components/board/ListComponent';
-import { Card } from '@taskhub/shared';
+import type { Card, List } from '@taskhub/shared';
+
+// Extend the test context with our custom fixtures
+type ComponentFixtures = {
+  mount: (component: React.ReactElement) => Promise<Page>;
+};
+
+// Helper function to create a test card
+const createTestCard = (overrides: Partial<Card> = {}): Card => ({
+  id: '1',
+  title: 'Test Card',
+  description: 'This is a test card',
+  listId: 'list-1',
+  position: 0,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  ...overrides,
+});
+
+// Helper function to create a test list
+const createTestList = (overrides: Partial<List> = {}): List => ({
+  id: 'list-1',
+  title: 'Test List',
+  boardId: 'board-1',
+  position: 0,
+  cards: [],
+  ...overrides,
+});
 
 test.describe('Component Behaviors', () => {
-  test('BoardCard should display card title and description', async ({ mount }) => {
-    const testCard: Card = {
-      id: '1',
+  test('BoardCard should display card title and description', async ({ mount }: { mount: ComponentFixtures['mount'] }) => {
+    const testCard = createTestCard({
       title: 'Test Card',
       description: 'This is a test card',
-      listId: 'list-1',
-      position: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    });
 
     const component = await mount(
       <BoardCard 
@@ -27,33 +50,23 @@ test.describe('Component Behaviors', () => {
     await expect(component.getByText(testCard.description!)).toBeVisible();
   });
 
-  test('ListComponent should display list title and cards', async ({ mount }) => {
-    const testList = {
-      id: 'list-1',
-      title: 'Test List',
-      boardId: 'board-1',
-      position: 0,
+  test('ListComponent should display list title and cards', async ({ mount }: { mount: ComponentFixtures['mount'] }) => {
+    const testList = createTestList({
       cards: [
-        {
+        createTestCard({
           id: 'card-1',
           title: 'Card 1',
           description: 'Description 1',
-          listId: 'list-1',
           position: 0,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
+        }),
+        createTestCard({
           id: 'card-2',
           title: 'Card 2',
           description: 'Description 2',
-          listId: 'list-1',
           position: 1,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
+        }),
       ],
-    };
+    });
 
     const component = await mount(
       <ListComponent
@@ -71,15 +84,8 @@ test.describe('Component Behaviors', () => {
     await expect(component.getByText('Card 2')).toBeVisible();
   });
 
-  test('ListComponent should show add card form when add button is clicked', async ({ mount }) => {
-    const testList = {
-      id: 'list-1',
-      title: 'Test List',
-      boardId: 'board-1',
-      position: 0,
-      cards: [],
-    };
-
+  test('ListComponent should show add card form when add button is clicked', async ({ mount }: { mount: ComponentFixtures['mount'] }) => {
+    const testList = createTestList({ cards: [] });
     let addCardClicked = false;
     
     const component = await mount(
@@ -107,17 +113,8 @@ test.describe('Component Behaviors', () => {
     expect(addCardClicked).toBe(true);
   });
 
-  test('BoardCard should call onEdit when clicked', async ({ mount }) => {
-    const testCard: Card = {
-      id: '1',
-      title: 'Test Card',
-      description: 'This is a test card',
-      listId: 'list-1',
-      position: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
+  test('BoardCard should call onEdit when clicked', async ({ mount }: { mount: ComponentFixtures['mount'] }) => {
+    const testCard = createTestCard();
     let editClicked = false;
 
     const component = await mount(
@@ -128,10 +125,18 @@ test.describe('Component Behaviors', () => {
       />
     );
 
-    // Click the card
-    await component.click();
-    
-    // Verify the callback was called
-    expect(editClicked).toBe(true);
+    try {
+      // Click the card
+      await component.click({
+        position: { x: 10, y: 10 },
+        timeout: 5000,
+      });
+      
+      // Verify the callback was called
+      expect(editClicked, 'onEdit callback should be called when card is clicked').toBe(true);
+    } catch (error) {
+      console.error('Error in BoardCard click test:', error);
+      throw error;
+    }
   });
 });

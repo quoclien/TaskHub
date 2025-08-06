@@ -397,5 +397,67 @@ namespace TaskHub.Api.Controllers
                 return BadRequest(new { error = ex.Message, details = ex.ToString() });
             }
         }
+
+        /// <summary>
+        /// Ensures the database is seeded with initial data. FOR DEVELOPMENT USE ONLY.
+        /// </summary>
+        /// <returns>Result of the seeding operation.</returns>
+        [HttpPost("ensure-seed-data")]
+        [Authorize(Roles = "Admin")]
+        [ApiExplorerSettings(IgnoreApi = false)]
+        public async Task<IActionResult> EnsureSeedData()
+        {
+            try
+            {
+                var usersExist = await _userRepository.GetAllAsync();
+                if (usersExist.Any())
+                {
+                    return Ok(new { message = "Database already contains users. Seeding skipped." });
+                }
+
+                // Manually create the seed data
+                var adminUser = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Username = "admin",
+                    Email = "admin@example.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin"),
+                    Role = UserRole.Admin,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                var demoUser = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Username = "demo",
+                    Email = "demo@taskhub.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Demo123!"),
+                    Role = UserRole.User,
+                    FirstName = "Demo",
+                    LastName = "User",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                await _userRepository.AddAsync(adminUser);
+                await _userRepository.AddAsync(demoUser);
+                await _unitOfWork.SaveChangesAsync();
+
+                return Ok(new { 
+                    message = "Database seeded successfully",
+                    usersCreated = new[] { 
+                        new { adminUser.Username, adminUser.Email },
+                        new { demoUser.Username, demoUser.Email }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message, details = ex.ToString() });
+            }
+        }
     }
 }

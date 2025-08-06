@@ -1,5 +1,15 @@
-import { test, expect } from './test-utils';
+import { test, expect, type Page } from './test-utils';
 import { faker } from '@faker-js/faker';
+
+// Extend the expect matchers with our custom matchers
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace PlaywrightTest {
+    interface Matchers<R> {
+      toHaveNoColorContrastViolations(): Promise<R>;
+    }
+  }
+}
 
 // Accessibility test suite
 test.describe('Accessibility', () => {
@@ -10,7 +20,9 @@ test.describe('Accessibility', () => {
     const accessibilityScanResults = await page.accessibility.snapshot();
     
     // Check for critical accessibility issues
-    expect(accessibilityScanResults?.violations).toBeUndefined();
+    if (accessibilityScanResults) {
+      expect(accessibilityScanResults.violations).toBeUndefined();
+    }
     
     // Check for proper heading structure
     await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
@@ -31,14 +43,17 @@ test.describe('Accessibility', () => {
     const accessibilityScanResults = await authenticatedPage.accessibility.snapshot();
     
     // Check for critical accessibility issues
-    expect(accessibilityScanResults?.violations).toBeUndefined();
+    if (accessibilityScanResults) {
+      expect(accessibilityScanResults.violations).toBeUndefined();
+    }
     
     // Check for proper ARIA attributes on interactive elements
-    await expect(authenticatedPage.getByRole('button', { name: /add a card/i })).toHaveAttribute('aria-label');
+    const addCardButton = authenticatedPage.getByRole('button', { name: /add a card/i });
+    await expect(addCardButton).toHaveAttribute('aria-label');
     
     // Check keyboard navigation
     await authenticatedPage.keyboard.press('Tab');
-    await expect(authenticatedPage.getByRole('button', { name: /add a card/i })).toBeFocused();
+    await expect(addCardButton).toBeFocused();
   });
 });
 
@@ -59,8 +74,8 @@ test.describe('Performance', () => {
     const loadTime = Date.now() - startTime;
     
     // Get performance metrics
-    const metrics = await page.evaluate(() => {
-      const [timing] = performance.getEntriesByType('navigation');
+    const metrics = await page.evaluate((): Record<string, number> => {
+      const [timing] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
       return {
         dns: timing.domainLookupEnd - timing.domainLookupStart,
         tcp: timing.connectEnd - timing.connectStart,
@@ -84,17 +99,28 @@ test.describe('Performance', () => {
     expect(loadTime).toBeLessThan(PERFORMANCE_BUDGET);
     
     // Check for large layout shifts (CLS)
-    const cls = await page.evaluate(() => {
+    const cls = await page.evaluate((): Promise<number> => {
       return new Promise((resolve) => {
         let cls = 0;
-        new PerformanceObserver((entryList) => {
+        const observer = new PerformanceObserver((entryList) => {
           for (const entry of entryList.getEntries()) {
-            if (!entry.hadRecentInput) {
-              cls += entry.value;
+            const layoutShiftEntry = entry as LayoutShift;
+            if (!layoutShiftEntry.hadRecentInput) {
+              cls += layoutShiftEntry.value;
             }
           }
           resolve(cls);
-        }).observe({ type: 'layout-shift', buffered: true });
+        });
+        
+        observer.observe({
+          type: 'layout-shift',
+          buffered: true,
+        } as PerformanceObserverInit);
+        
+        // Ensure we clean up the observer
+        setTimeout(() => {
+          observer.disconnect();
+        }, 0);
       });
     });
     
@@ -163,52 +189,50 @@ test.describe('Performance', () => {
   });
 });
 
-// Extend expect with custom matchers
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace PlaywrightTest {
-    interface Matchers<R> {
-      toHaveNoColorContrastViolations(): Promise<R>;
-    }
-  }
-}
-
+// Implement custom matchers
 expect.extend({
-  async toHaveNoColorContrastViolations(page) {
-    // This is a simplified example - in a real implementation, you would use a library like axe-core
-    // or implement your own contrast checking logic
-    const issues = [];
-    
-    // Check text contrast
-    const elements = await page.$$('p, h1, h2, h3, h4, h5, h6, a, button, [role="button"]');
-    
-    for (const element of elements) {
-      const color = await element.evaluate((el) => {
-        const style = window.getComputedStyle(el);
-        return {
-          bgColor: style.backgroundColor,
-          textColor: style.color,
-          text: el.textContent?.trim(),
-        };
-      });
+  async toHaveNoColorContrastViolations(page: Page) {
+    try {
+      // This is a simplified example - in a real implementation, you would use a library like axe-core
+      // or implement your own contrast checking logic
+      const issues: string[] = [];
       
-      // Skip if no text or if text is not visible
-      if (!color.text || color.text.length === 0 || color.textColor === 'rgba(0, 0, 0, 0)') {
-        continue;
+      // Check text contrast
+      const elements = await page.$$('p, h1, h2, h3, h4, h5, h6, a, button, [role="button"]');
+      
+      for (const element of elements) {
+        const color = await element.evaluate((el: HTMLElement) => {
+          const style = window.getComputedStyle(el);
+          return {
+            bgColor: style.backgroundColor,
+            textColor: style.color,
+            text: el.textContent?.trim(),
+          };
+        });
+        
+        // Skip if no text or if text is not visible
+        if (!color.text || color.text.length === 0 || color.textColor === 'rgba(0, 0, 0, 0)') {
+          continue;
+        }
+        
+        // This is a simplified check - in a real implementation, you would calculate the contrast ratio
+        // and compare it against WCAG guidelines
+        if (color.textColor === color.bgColor) {
+          issues.push(`Insufficient contrast for element with text: "${color.text}"`);
+        }
       }
       
-      // This is a simplified check - in a real implementation, you would calculate the contrast ratio
-      // and compare it against WCAG guidelines
-      if (color.textColor === color.bgColor) {
-        issues.push(`Insufficient contrast for element with text: "${color.text}"`);
-      }
+      return {
+        pass: issues.length === 0,
+        message: () => issues.length > 0 
+          ? `Found ${issues.length} color contrast issues:\n${issues.join('\n')}`
+          : 'No color contrast issues found',
+      };
+    } catch (error) {
+      return {
+        pass: false,
+        message: () => `Error checking color contrast: ${error instanceof Error ? error.message : String(error)}`,
+      };
     }
-    
-    return {
-      pass: issues.length === 0,
-      message: () => issues.length > 0 
-        ? `Found ${issues.length} color contrast issues:\n${issues.join('\n')}`
-        : 'No color contrast issues found',
-    };
   },
 });

@@ -16,6 +16,7 @@ namespace TaskHub.Api.Migrations
                 table: "cards",
                 newName: "metadata");
 
+            migrationBuilder.Sql("ALTER TABLE cards ALTER COLUMN metadata TYPE jsonb USING metadata::jsonb;");
             migrationBuilder.AlterColumn<Dictionary<string, object>>(
                 name: "metadata",
                 table: "cards",

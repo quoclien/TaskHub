@@ -1,8 +1,21 @@
-import { test as base, expect } from '@playwright/test';
+import { test as base, expect, type Page, type TestType } from '@playwright/test';
 import { faker } from '@faker-js/faker';
 
+// Define types for our test fixtures
+type TestUser = {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+};
+
+type TestFixtures = {
+  authenticatedPage: Page;
+  testUser: TestUser;
+};
+
 // Test user factory
-export const createTestUser = () => ({
+export const createTestUser = (): TestUser => ({
   email: `test_${Date.now()}_${faker.internet.email()}`,
   password: `P@ssw0rd_${Date.now()}`,
   firstName: faker.person.firstName(),
@@ -10,16 +23,16 @@ export const createTestUser = () => ({
 });
 
 // Extend base test with auth fixtures
-export const test = base.extend<{
-  authenticatedPage: any;
-  testUser: any;
-}>({
-  testUser: [async ({}, use) => {
-    // Create a new test user for each test
-    const user = createTestUser();
-    await use(user);
-    // Cleanup can be added here if needed
-  }, { scope: 'test' }],
+export const test = base.extend<TestFixtures>({
+  testUser: [
+    async ({}, use) => {
+      // Create a new test user for each test
+      const user = createTestUser();
+      await use(user);
+      // Cleanup can be added here if needed
+    },
+    { scope: 'test' },
+  ],
 
   authenticatedPage: async ({ page, testUser }, use) => {
     // Sign up the test user
@@ -38,13 +51,29 @@ export const test = base.extend<{
     // Wait for navigation to complete
     await expect(page).toHaveURL('/boards');
     
-    // Use the authenticated page in the test
-    await use(page);
-    
-    // Logout after the test
-    await page.goto('/api/auth/signout');
-    await page.getByRole('button', { name: /sign out/i }).click();
+    try {
+      // Use the authenticated page in the test
+      await use(page);
+    } finally {
+      // Ensure we always try to clean up, even if the test fails
+      try {
+        await page.goto('/api/auth/signout');
+        await page.getByRole('button', { name: /sign out/i }).click();
+      } catch (error) {
+        console.error('Error during test cleanup:', error);
+      }
+    }
   },
 });
+
+// Re-export expect with custom matchers
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace PlaywrightTest {
+    interface Matchers<R> {
+      toHaveNoColorContrastViolations(): Promise<R>;
+    }
+  }
+}
 
 export { expect } from '@playwright/test';

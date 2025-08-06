@@ -18,7 +18,7 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # Build the application
-RUN pnpm run build
+RUN pnpm run build:web
 
 # Production stage
 FROM node:20-alpine AS runner
@@ -27,13 +27,11 @@ WORKDIR /app
 # Install pnpm
 RUN npm install -g pnpm
 
-# Copy built assets from builder
+# Copy essential files from builder
 COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/next.config.js ./
 
-# Install only production dependencies
+# Install only production dependencies  
 RUN pnpm install --prod --frozen-lockfile
 
 # Set environment variables

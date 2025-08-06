@@ -57,45 +57,45 @@ export function BoardComponentsShowcase() {
   // Mock Data
   const mockCards = [
     {
-      id: '1',
+      id: 'card-1',
       title: 'Design new user dashboard',
       position: 0,
       labels: [
-        { id: '1', name: 'Design', color: '#3b82f6' },
-        { id: '2', name: 'High Priority', color: '#ef4444' },
+        { id: 'card-label-1', name: 'Design', color: '#3b82f6' },
+        { id: 'card-label-2', name: 'High Priority', color: '#ef4444' },
       ],
       dueDate: '2024-02-01T12:00:00Z',
       members: [
-        { id: '1', name: 'John Doe', initials: 'JD' },
-        { id: '2', name: 'Jane Smith', initials: 'JS' },
+        { id: 'card-member-1', name: 'John Doe', initials: 'JD' },
+        { id: 'card-member-2', name: 'Jane Smith', initials: 'JS' },
       ],
     },
     {
-      id: '2',
+      id: 'card-2',
       title: 'Fix mobile responsiveness issues',
       position: 1,
-      labels: [{ id: '3', name: 'Bug', color: '#f59e0b' }],
-      members: [{ id: '3', name: 'Mike Johnson', initials: 'MJ' }],
+      labels: [{ id: 'card-label-3', name: 'Bug', color: '#f59e0b' }],
+      members: [{ id: 'card-member-3', name: 'Mike Johnson', initials: 'MJ' }],
     },
   ];
 
   const initialLists: ListProps[] = [
     {
-      id: '1',
+      id: 'list-1',
       title: 'To Do',
       position: 0,
       cards: mockCards,
       boardId: 'showcase-board',
     },
     {
-      id: '2',
+      id: 'list-2',
       title: 'In Progress',
       position: 1,
       cards: [mockCards[0]],
       boardId: 'showcase-board',
     },
     {
-      id: '3',
+      id: 'list-3',
       title: 'Done',
       position: 2,
       cards: [],
@@ -107,19 +107,19 @@ export function BoardComponentsShowcase() {
 
   const mockBoards = [
     {
-      id: '1',
+      id: 'board-1',
       title: 'Product Development',
       memberCount: 5,
       lastActivity: '2024-01-20T10:30:00Z',
     },
     {
-      id: '2',
+      id: 'board-2',
       title: 'Marketing Campaign',
       memberCount: 3,
       lastActivity: '2024-01-19T14:15:00Z',
     },
     {
-      id: '3',
+      id: 'board-3',
       title: 'Bug Fixes',
       memberCount: 2,
       lastActivity: '2024-01-18T09:45:00Z',
