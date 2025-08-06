@@ -4,6 +4,8 @@ using TaskHub.Api.Models.Entities.Boards;
 using TaskHub.Api.Models.Entities.Cards;
 using TaskHub.Api.Models.Entities.Lists;
 using TaskHub.Api.Models.Entities.Users;
+using TaskHub.Api.Models.Entities.Enums;
+using BCrypt.Net;
 
 namespace TaskHub.Api.Infrastructure.Data
 {
@@ -67,14 +69,24 @@ namespace TaskHub.Api.Infrastructure.Data
                 entity.Property(e => e.AvatarUrl)
                     .HasColumnName("avatar_url")
                     .HasMaxLength(500);
-                
+
+                entity.Property(e => e.GoogleId)
+                    .HasColumnName("google_id")
+                    .HasMaxLength(100);
+
                 entity.Property(e => e.IsActive)
                     .HasColumnName("is_active")
                     .HasDefaultValue(true);
                 
                 entity.Property(e => e.LastLoginAt)
                     .HasColumnName("last_login_at");
-                
+
+                entity.Property(e => e.Role)
+                    .HasColumnName("role")
+                    .IsRequired()
+                    .HasDefaultValue(UserRole.User)
+                    .HasSentinel((UserRole)0);
+
                 entity.Property(e => e.CreatedAt)
                     .HasColumnName("created_at");
                 
@@ -89,6 +101,34 @@ namespace TaskHub.Api.Infrastructure.Data
                 entity.HasIndex(e => e.Username)
                     .IsUnique()
                     .HasDatabaseName("ix_users_username");
+
+                // Seed data with static values  
+                entity.HasData(
+                    new User
+                    {
+                        Id = Guid.Parse("550e8400-e29b-41d4-a716-446655440001"),
+                        Username = "admin",
+                        Email = "admin@example.com",
+                        PasswordHash = "$2a$11$rLmZgDJGNuFu.M7P1zYL1uZ7h4YDZE4XlkV3mL3LzHBE4jQ7jWf1m", // admin
+                        Role = UserRole.Admin,
+                        IsActive = true,
+                        CreatedAt = DateTime.Parse("2024-01-01T00:00:00Z").ToUniversalTime(),
+                        UpdatedAt = DateTime.Parse("2024-01-01T00:00:00Z").ToUniversalTime()
+                    },
+                    new User
+                    {
+                        Id = Guid.Parse("550e8400-e29b-41d4-a716-446655440002"),
+                        Username = "demo",
+                        Email = "demo@taskhub.com",
+                        PasswordHash = "$2a$11$8K2wJZjAe3qXV3xkR1L9K.6D4E0.aGJo.dI/MgJ8X.5sT9rYzN7mO", // Demo123!
+                        Role = UserRole.User,
+                        FirstName = "Demo",
+                        LastName = "User",
+                        IsActive = true,
+                        CreatedAt = DateTime.Parse("2024-01-01T00:00:00Z").ToUniversalTime(),
+                        UpdatedAt = DateTime.Parse("2024-01-01T00:00:00Z").ToUniversalTime()
+                    }
+                );
             });
         }
 

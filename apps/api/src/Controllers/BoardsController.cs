@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TaskHub.Api.Core.Authorization;
 using TaskHub.Api.Core.Interfaces;
 using TaskHub.Api.Models.Dtos.Boards;
+using TaskHub.Api.Models.Entities.Enums;
 
 namespace TaskHub.Api.Controllers
 {
@@ -39,6 +41,7 @@ namespace TaskHub.Api.Controllers
         /// </summary>
         /// <param name="id">The ID of the board</param>
         [HttpGet("{id}")]
+        [BoardAuthorization(BoardRole.Viewer, "id")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<BoardDto>> GetBoard(Guid id)
@@ -84,6 +87,7 @@ namespace TaskHub.Api.Controllers
         /// <param name="id">The ID of the board to update</param>
         /// <param name="updateBoardDto">The updated board data</param>
         [HttpPut("{id}")]
+        [BoardAuthorization(BoardRole.Admin, "id")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -117,6 +121,7 @@ namespace TaskHub.Api.Controllers
         /// </summary>
         /// <param name="id">The ID of the board to delete</param>
         [HttpDelete("{id}")]
+        [BoardAuthorization(BoardRole.Owner, "id")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteBoard(Guid id)

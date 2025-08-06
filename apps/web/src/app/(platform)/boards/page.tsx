@@ -185,12 +185,12 @@ const BoardsPage = () => {
     error,
   } = useQuery<Board[]>({
     queryKey: ['boards'],
-    queryFn: () => fetchBoards(token),
+    queryFn: () => fetchBoards(),
     enabled: true, // Always enable the query since we have mock data
   });
 
   const createBoardMutation = useMutation({
-    mutationFn: (board: { title: string; description?: string }) => createBoard(board, token),
+    mutationFn: (board: { title: string; description?: string }) => createBoard(board),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['boards'] });
     },
@@ -200,7 +200,7 @@ const BoardsPage = () => {
   });
 
   const deleteBoardMutation = useMutation({
-    mutationFn: (boardId: string) => deleteBoard(boardId, token),
+    mutationFn: (boardId: string) => deleteBoard(boardId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['boards'] });
       setIsDeleteModalOpen(false);

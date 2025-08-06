@@ -6,10 +6,12 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using TaskHub.Api.Core.Interfaces.Repositories;
 using TaskHub.Api.Core.Interfaces;
 using TaskHub.Api.Models.Entities.Users;
+using TaskHub.Api.Models.Entities.Enums;
 
 using TaskHub.Api.Common;
 
@@ -170,6 +172,230 @@ namespace TaskHub.Api.Controllers
                     IsAuthenticated = User?.Identity?.IsAuthenticated
                 }
             });
+        }
+
+        /// <summary>
+        /// Lists all users in the database. FOR DEVELOPMENT USE ONLY.
+        /// </summary>
+        /// <returns>List of all users with basic information.</returns>
+        [HttpGet("list-users")]
+        [ApiExplorerSettings(IgnoreApi = false)]
+        public async Task<IActionResult> ListUsers()
+        {
+            var users = await _userRepository.GetAllAsync();
+            var userList = users.Select(u => new 
+            {
+                Id = u.Id,
+                Username = u.Username,
+                Email = u.Email,
+                Role = u.Role.ToString(),
+                IsActive = u.IsActive,
+                CreatedAt = u.CreatedAt,
+                HasPassword = !string.IsNullOrEmpty(u.PasswordHash)
+            }).ToList();
+
+            return Ok(new 
+            {
+                Count = userList.Count,
+                Users = userList
+            });
+        }
+
+        /// <summary>
+        /// Manually triggers database seeding. FOR DEVELOPMENT USE ONLY.
+        /// </summary>
+        /// <returns>Result of the seeding operation.</returns>
+        [HttpPost("seed-database")]
+        [ApiExplorerSettings(IgnoreApi = false)]
+        public async Task<IActionResult> SeedDatabase()
+        {
+            try
+            {
+                var existingUsers = await _userRepository.GetAllAsync();
+                if (existingUsers.Any())
+                {
+                    return Ok(new { message = $"Database already contains {existingUsers.Count()} users. Seeding skipped." });
+                }
+
+                // Manually create the seed data
+                var adminUser = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Username = "admin",
+                    Email = "admin@example.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin"),
+                    Role = UserRole.Admin,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                var demoUser = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Username = "demo",
+                    Email = "demo@taskhub.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Demo123!"),
+                    Role = UserRole.User,
+                    FirstName = "Demo",
+                    LastName = "User",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                await _userRepository.AddAsync(adminUser);
+                await _userRepository.AddAsync(demoUser);
+                await _unitOfWork.SaveChangesAsync();
+
+                return Ok(new { 
+                    message = "Database seeded successfully",
+                    usersCreated = new[] { 
+                        new { adminUser.Username, adminUser.Email },
+                        new { demoUser.Username, demoUser.Email }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message, details = ex.ToString() });
+            }
+        }
+
+        /// <summary>
+        /// Tests password verification with current database users. FOR DEVELOPMENT USE ONLY.
+        /// </summary>
+        /// <returns>Password verification test results.</returns>
+        [HttpPost("test-passwords")]
+        [ApiExplorerSettings(IgnoreApi = false)]
+        public async Task<IActionResult> TestPasswords()
+        {
+            try
+            {
+                var users = await _userRepository.GetAllAsync();
+                var results = new List<object>();
+
+                foreach (var user in users)
+                {
+                    // Test various password combinations
+                    var testPasswords = new[] { "admin", "Demo123!", "password123" };
+                    var passwordResults = new List<object>();
+
+                    foreach (var testPassword in testPasswords)
+                    {
+                        var isValid = !string.IsNullOrEmpty(user.PasswordHash) && 
+                                     BCrypt.Net.BCrypt.Verify(testPassword, user.PasswordHash);
+                        passwordResults.Add(new { password = testPassword, isValid });
+                    }
+
+                    results.Add(new 
+                    {
+                        user.Username,
+                        user.Email,
+                        hasPasswordHash = !string.IsNullOrEmpty(user.PasswordHash),
+                        passwordHashLength = user.PasswordHash?.Length ?? 0,
+                        passwordHashPrefix = user.PasswordHash?.Substring(0, Math.Min(10, user.PasswordHash?.Length ?? 0)),
+                        testResults = passwordResults
+                    });
+                }
+
+                return Ok(new { users = results });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message, details = ex.ToString() });
+            }
+        }
+
+        /// <summary>
+        /// Clears all users and reseeds with fresh verified credentials. FOR DEVELOPMENT USE ONLY.
+        /// </summary>
+        /// <returns>Result of the reset operation.</returns>
+        [HttpPost("reset-users")]
+        [ApiExplorerSettings(IgnoreApi = false)]
+        public async Task<IActionResult> ResetUsers()
+        {
+            try
+            {
+                // Clear all existing users
+                var existingUsers = await _userRepository.GetAllAsync();
+                foreach (var user in existingUsers)
+                {
+                    _userRepository.Delete(user);
+                }
+                await _unitOfWork.SaveChangesAsync();
+
+                // Create admin user with verified password hash
+                var adminPassword = "admin";
+                var adminHash = BCrypt.Net.BCrypt.HashPassword(adminPassword);
+                var adminUser = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Username = "admin",
+                    Email = "admin@example.com",
+                    PasswordHash = adminHash,
+                    Role = UserRole.Admin,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                // Create demo user with verified password hash  
+                var demoPassword = "Demo123!";
+                var demoHash = BCrypt.Net.BCrypt.HashPassword(demoPassword);
+                var demoUser = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Username = "demo",
+                    Email = "demo@taskhub.com",
+                    PasswordHash = demoHash,
+                    Role = UserRole.User,
+                    FirstName = "Demo",
+                    LastName = "User",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                // Verify password hashes before saving
+                var adminVerification = BCrypt.Net.BCrypt.Verify(adminPassword, adminHash);
+                var demoVerification = BCrypt.Net.BCrypt.Verify(demoPassword, demoHash);
+
+                if (!adminVerification || !demoVerification)
+                {
+                    return BadRequest(new { 
+                        error = "Password verification failed during creation",
+                        adminVerification,
+                        demoVerification 
+                    });
+                }
+
+                await _userRepository.AddAsync(adminUser);
+                await _userRepository.AddAsync(demoUser);
+                await _unitOfWork.SaveChangesAsync();
+
+                return Ok(new { 
+                    message = "Users reset successfully with verified credentials",
+                    users = new[] { 
+                        new { 
+                            adminUser.Username, 
+                            adminUser.Email, 
+                            password = adminPassword,
+                            hashVerified = adminVerification
+                        },
+                        new { 
+                            demoUser.Username, 
+                            demoUser.Email, 
+                            password = demoPassword,
+                            hashVerified = demoVerification
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message, details = ex.ToString() });
+            }
         }
     }
 }

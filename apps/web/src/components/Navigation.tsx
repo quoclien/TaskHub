@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuthStore } from '@/hooks/useAuthStore';
+import { useAuth } from '@/hooks/useAuth';
 import { fetchBoards } from '@/lib/api/board';
 
 // Types
@@ -25,15 +25,15 @@ interface NavigationProps {
 
 // Component
 export const Navigation = ({ currentBoardId }: NavigationProps) => {
-  const { token, setToken } = useAuthStore();
+  const { user, isAuthenticated, logout } = useAuth();
   const router = useRouter();
   const [lastBoardId, setLastBoardId] = useState<string | null>(null);
 
   // Hooks
   const { data: boards, isLoading: boardsLoading } = useQuery<Board[]>({
     queryKey: ['boards'],
-    queryFn: () => fetchBoards(token),
-    enabled: !!token,
+    queryFn: () => fetchBoards(),
+    enabled: isAuthenticated,
   });
 
   // Effects
@@ -49,8 +49,7 @@ export const Navigation = ({ currentBoardId }: NavigationProps) => {
   };
 
   const handleSignOut = () => {
-    setToken(null);
-    router.push('/sign-in');
+    logout();
   };
 
   const handleProfile = () => {
@@ -122,8 +121,16 @@ export const Navigation = ({ currentBoardId }: NavigationProps) => {
           size='sm'
           className='flex items-center gap-2'
         >
-          <User className='h-4 w-4' />
-          <span>Account</span>
+          {user?.image ? (
+            <img
+              src={user.image}
+              alt={user.name || 'User'}
+              className='h-6 w-6 rounded-full'
+            />
+          ) : (
+            <User className='h-4 w-4' />
+          )}
+          <span>{user?.name || 'Account'}</span>
           <ChevronDown className='h-4 w-4' />
         </Button>
       </DropdownMenuTrigger>
@@ -168,21 +175,32 @@ export const Navigation = ({ currentBoardId }: NavigationProps) => {
           >
             TaskHub
           </Link>
-          {token && renderBoardSwitcher()}
+          {isAuthenticated && renderBoardSwitcher()}
         </div>
         <div className='flex items-center gap-2'>
-          {token ? (
-            renderUserMenu()
+          {isAuthenticated ? (
+            <>
+              <Button
+                variant='ghost'
+                asChild
+              >
+                <Link href='/boards'>Boards</Link>
+              </Button>
+              {renderUserMenu()}
+            </>
           ) : (
             <div className='flex items-center gap-2'>
               <Button
                 variant='ghost'
                 asChild
               >
-                <Link href='/sign-in'>Sign In</Link>
+                <Link href='/'>Home</Link>
               </Button>
-              <Button asChild>
-                <Link href='/sign-up'>Sign Up</Link>
+              <Button
+                variant='ghost'
+                asChild
+              >
+                <Link href='/sign-in'>Sign In</Link>
               </Button>
             </div>
           )}

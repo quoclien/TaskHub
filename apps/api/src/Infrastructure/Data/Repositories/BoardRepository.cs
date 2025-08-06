@@ -49,6 +49,14 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
                 .AnyAsync(bm => bm.BoardId == boardId && bm.UserId == userId && bm.Role >= requiredRole);
         }
 
+        public async Task<BoardRole?> GetUserRoleInBoardAsync(Guid userId, Guid boardId)
+        {
+            var boardMember = await _context.BoardMembers
+                .FirstOrDefaultAsync(bm => bm.UserId == userId && bm.BoardId == boardId);
+            
+            return boardMember?.Role;
+        }
+
         public async Task<BoardMemberEntity?> GetBoardMemberAsync(Guid boardId, Guid userId)
         {
             return await _context.BoardMembers

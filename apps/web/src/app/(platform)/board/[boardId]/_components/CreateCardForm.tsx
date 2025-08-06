@@ -30,7 +30,7 @@ export const CreateCardForm = ({ listId, cardCount, boardId }: CreateCardFormPro
 
   const { mutate, isPending } = useMutation({
     mutationFn: (data: { title: string }) =>
-      createCard(boardId, listId, data.title, cardCount, token),
+      createCard(boardId, listId, data.title, cardCount),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['board', boardId] });
       toast.success('Card created successfully!');

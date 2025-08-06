@@ -97,7 +97,8 @@ namespace TaskHub.Api.Core.Services
                 // Find user by email or username
                 var user = await FindUserByEmailOrUsernameAsync(loginDto.EmailOrUsername);
                 
-                if (user == null || !VerifyPassword(loginDto.Password, user.PasswordHash))
+                // Check if user exists and has a password hash
+                if (user == null || string.IsNullOrEmpty(user.PasswordHash) || !VerifyPassword(loginDto.Password, user.PasswordHash))
                 {
                     _logger.LogWarning("Failed login attempt for {EmailOrUsername}", loginDto.EmailOrUsername);
                     throw new UnauthorizedException("Invalid email/username or password.");
@@ -203,6 +204,9 @@ namespace TaskHub.Api.Core.Services
 
         private bool VerifyPassword(string password, string hash)
         {
+            if (string.IsNullOrEmpty(hash))
+                return false;
+                
             try
             {
                 return BCrypt.Net.BCrypt.Verify(password, hash);

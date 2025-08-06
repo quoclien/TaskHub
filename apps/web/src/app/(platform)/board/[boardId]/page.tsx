@@ -28,7 +28,7 @@ const BoardIdPage = () => {
     queryKey: ['board', boardId],
     queryFn: async () => {
       console.log('Fetching board data for boardId:', boardId);
-      const data = await fetchBoardById(boardId, token);
+      const data = await fetchBoardById(boardId);
       console.log('Fetched board data:', data);
       return data;
     },

@@ -29,7 +29,7 @@ export const CreateListForm = ({ boardId, listCount }: CreateListFormProps) => {
   const { mutate, isPending } = useMutation({
     mutationFn: (title: string) => {
       const position = listCount;
-      return createList(boardId, title, position, token);
+      return createList(boardId, title, position);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['board', boardId] });

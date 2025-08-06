@@ -13,6 +13,7 @@ namespace TaskHub.Api.Core.Interfaces.Repositories
         Task<IEnumerable<BoardEntity>> GetUserBoardsAsync(Guid userId);
         Task<bool> IsBoardMemberAsync(Guid boardId, Guid userId);
         Task<bool> UserHasAccess(Guid boardId, Guid userId, BoardRole requiredRole);
+        Task<BoardRole?> GetUserRoleInBoardAsync(Guid userId, Guid boardId);
         Task<BoardMemberEntity?> GetBoardMemberAsync(Guid boardId, Guid userId);
         Task AddBoardMemberAsync(BoardMemberEntity member);
         void RemoveBoardMember(BoardMemberEntity member);

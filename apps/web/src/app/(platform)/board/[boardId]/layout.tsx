@@ -9,7 +9,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   try {
     const { boardId } = await params;
-    const board = await fetchBoardById(boardId, null);
+    const board = await fetchBoardById(boardId);
     return {
       title: `${board.title} - TaskHub`,
       description: board.description || `View and manage tasks in ${board.title}`,

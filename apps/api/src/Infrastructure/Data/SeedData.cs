@@ -48,6 +48,19 @@ public static class SeedData
 
         logger.LogInformation("Seeding database with initial data...");
 
+        // Create admin user
+        var adminUser = new User
+        {
+            Id = Guid.NewGuid(),
+            Username = "admin",
+            Email = "admin@example.com",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin"),
+            Role = UserRole.Admin,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
         // Create demo user
         var demoUser = new User
         {
@@ -55,6 +68,7 @@ public static class SeedData
             Username = "demo",
             Email = "demo@taskhub.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("Demo123!"),
+            Role = UserRole.User,
             FirstName = "Demo",
             LastName = "User",
             IsActive = true,
@@ -62,7 +76,7 @@ public static class SeedData
             UpdatedAt = DateTime.UtcNow
         };
 
-        context.Users.Add(demoUser);
+        context.Users.AddRange(adminUser, demoUser);
         await context.SaveChangesAsync();
 
         // Create demo board

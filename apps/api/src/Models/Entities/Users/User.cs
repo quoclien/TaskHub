@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using TaskHub.Api.Models.Entities.Boards;
+using TaskHub.Api.Models.Entities.Enums;
 
 namespace TaskHub.Api.Models.Entities.Users
 {
@@ -8,10 +9,12 @@ namespace TaskHub.Api.Models.Entities.Users
     {
         public string Username { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public string PasswordHash { get; set; } = string.Empty;
+        public string? PasswordHash { get; set; } = string.Empty;
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public string? AvatarUrl { get; set; }
+        public string? GoogleId { get; set; }
+        public UserRole Role { get; set; } = UserRole.User;
         public bool IsActive { get; set; } = true;
         public DateTime? LastLoginAt { get; set; }
         

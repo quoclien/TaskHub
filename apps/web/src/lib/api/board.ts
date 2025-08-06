@@ -34,9 +34,9 @@ const mockBoards = [
   },
 ];
 
-export const fetchBoards = async (token: string | null) => {
-  // For development, return mock data if no token or if API is not available
-  if (!token || process.env.NODE_ENV === 'development') {
+export const fetchBoards = async () => {
+  // For development, return mock data
+  if (process.env.NODE_ENV === 'development') {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 500));
     return mockBoards;
@@ -44,9 +44,9 @@ export const fetchBoards = async (token: string | null) => {
 
   const response = await fetch(`${API_BASE}/boards`, {
     headers: {
-      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
+    credentials: 'include', // Include cookies for session-based auth
   });
 
   if (!response.ok) {
@@ -59,17 +59,14 @@ export const fetchBoards = async (token: string | null) => {
 };
 
 export const createBoard = async (
-  board: { title: string; description?: string },
-  token: string | null
+  board: { title: string; description?: string }
 ) => {
-  if (!token) throw new Error('Authentication required');
-
   const response = await fetch(`${API_BASE}/boards`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
+    credentials: 'include', // Include cookies for session-based auth
     body: JSON.stringify(board),
   });
 
@@ -80,15 +77,13 @@ export const createBoard = async (
   return response.json();
 };
 
-export const deleteBoard = async (boardId: string, token: string | null) => {
-  if (!token) throw new Error('Authentication required');
-
+export const deleteBoard = async (boardId: string) => {
   const response = await fetch(`${API_BASE}/boards/${boardId}`, {
     method: 'DELETE',
     headers: {
-      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
+    credentials: 'include', // Include cookies for session-based auth
   });
 
   if (!response.ok) {
@@ -99,19 +94,14 @@ export const deleteBoard = async (boardId: string, token: string | null) => {
 export const createList = async (
   boardId: string,
   title: string,
-  position: number,
-  token: string | null
+  position: number
 ): Promise<void> => {
-  if (!token) {
-    throw new Error('Not authenticated');
-  }
-
   const response = await fetch(`${API_BASE}/boards/${boardId}/lists`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
+    credentials: 'include', // Include cookies for session-based auth
     body: JSON.stringify({ title, position }),
   });
 
@@ -124,19 +114,14 @@ export const createCard = async (
   boardId: string,
   listId: string,
   title: string,
-  position: number,
-  token: string | null
+  position: number
 ) => {
-  if (!token) {
-    throw new Error('Not authenticated');
-  }
-
   const response = await fetch(`${API_BASE}/boards/${boardId}/lists/${listId}/cards`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
     },
+    credentials: 'include', // Include cookies for session-based auth
     body: JSON.stringify({ title, position }),
   });
 
@@ -233,10 +218,9 @@ const mockLists = [
 ];
 
 export const fetchBoardById = async (
-  boardId: string,
-  token: string | null = null
+  boardId: string
 ): Promise<Board> => {
-  // In development, return mock data regardless of token
+  // In development, return mock data
   if (process.env.NODE_ENV === 'development') {
     console.log('Using mock data for board:', boardId);
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -265,9 +249,9 @@ export const fetchBoardById = async (
   // Production/authenticated API call
   const response = await fetch(`${API_BASE}/boards/${boardId}`, {
     headers: {
-      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
+    credentials: 'include', // Include cookies for session-based auth
   });
 
   if (!response.ok) {

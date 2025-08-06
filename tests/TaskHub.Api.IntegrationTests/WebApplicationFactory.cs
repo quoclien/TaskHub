@@ -15,29 +15,27 @@ namespace TaskHub.Api.IntegrationTests
     public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        // Set environment to Testing to avoid runtime seeding
+        builder.UseEnvironment("Testing");
+        
+        builder.ConfigureServices(services =>
         {
-            builder.ConfigureServices(services =>
+            // Remove existing DbContext registrations
+            var dbContextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
+            if (dbContextDescriptor != null)
+                services.Remove(dbContextDescriptor);
+
+            var applicationDbContextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(ApplicationDbContext));
+            if (applicationDbContextDescriptor != null)
+                services.Remove(applicationDbContextDescriptor);
+
+            // Add DbContext using SQLite for testing
+            services.AddDbContext<ApplicationDbContext>(options =>
             {
-                // Remove production DbContext options and Npgsql data source
-                var dbContextOptionsDescriptor = services.SingleOrDefault(
-                    d => d.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-                if (dbContextOptionsDescriptor != null)
-                {
-                    services.Remove(dbContextOptionsDescriptor);
-                }
-
-                var npgsqlDataSourceDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(Npgsql.NpgsqlDataSource));
-                if (npgsqlDataSourceDescriptor != null)
-                {
-                    services.Remove(npgsqlDataSourceDescriptor);
-                }
-
-                // Add DbContext using the shared connection from DatabaseManager
-                services.AddDbContext<ApplicationDbContext>(options =>
-                {
-                    options.UseSqlite(DatabaseManager.Connection);
-                });
+                options.UseSqlite(DatabaseManager.Connection);
             });
+        });
         }
 
         protected override IHost CreateHost(IHostBuilder builder)
