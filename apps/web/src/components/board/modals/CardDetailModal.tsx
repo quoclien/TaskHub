@@ -61,10 +61,18 @@ export function CardDetailModal() {
 
   // Event handlers
   const handleClose = useCallback(() => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete('cardId');
-    const newUrl = params.toString() ? `?${params.toString()}` : '';
-    router.replace(newUrl);
+    try {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('cardId');
+      const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+      router.push(newUrl);
+    } catch (error) {
+      console.error('Error closing modal:', error);
+      // Fallback: force reload the page without the cardId parameter
+      const url = new URL(window.location.href);
+      url.searchParams.delete('cardId');
+      window.location.href = url.toString();
+    }
   }, [router, searchParams]);
 
   // Don't render if no cardId
@@ -75,7 +83,7 @@ export function CardDetailModal() {
   return (
     <Dialog
       open={isOpen}
-      onOpenChange={(open) => !open && handleClose()}
+      onOpenChange={handleClose}
     >
       <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
         <DialogHeader>

@@ -131,7 +131,89 @@ export const createCard = async (
   return response.json();
 };
 
+// Mock cards for development - extracted from mockLists for easier access
+const mockCards = [
+  {
+    id: 'card-1',
+    title: 'Set up project board',
+    description: 'Initialize the project board with basic lists and configure the initial workflow',
+    listId: 'list-1',
+    position: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    metadata: { labels: ['setup'] },
+    dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    isArchived: false,
+    assignedTo: 'user-1',
+    comments: [
+      { content: 'Started working on this task', createdAt: new Date().toISOString() },
+      { content: 'Making good progress', createdAt: new Date().toISOString() }
+    ],
+  },
+  {
+    id: 'card-2',
+    title: 'Review design mockups',
+    description: 'Go through the latest UI/UX designs and provide feedback on the proposed interface changes',
+    listId: 'list-1',
+    position: 1,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    metadata: { labels: ['design', 'review'] },
+    dueDate: null,
+    isArchived: false,
+    assignedTo: null,
+    comments: [],
+  },
+  {
+    id: 'card-3',
+    title: 'Implement authentication',
+    description: 'Set up JWT authentication flow with proper session management and refresh token handling',
+    listId: 'list-2',
+    position: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    metadata: { labels: ['backend'] },
+    dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    isArchived: false,
+    assignedTo: 'user-1',
+    comments: [
+      { content: 'Authentication endpoint created', createdAt: new Date().toISOString() }
+    ],
+  },
+  {
+    id: 'card-4',
+    title: 'Project kickoff',
+    description: 'Initial project setup and planning session with all stakeholders to define goals and timeline',
+    listId: 'list-4',
+    position: 0,
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    metadata: { labels: ['planning'] },
+    dueDate: null,
+    isArchived: false,
+    assignedTo: 'user-1',
+    comments: [
+      { content: 'Kickoff meeting completed successfully', createdAt: new Date().toISOString() },
+      { content: 'All team members are aligned on the goals', createdAt: new Date().toISOString() }
+    ],
+  },
+];
+
 export const getCardById = async (cardId: string) => {
+  // For development, return mock data unless explicitly disabled for E2E testing
+  const DISABLE_MOCKS = process.env.NEXT_PUBLIC_DISABLE_MOCKS === 'true';
+  if (process.env.NODE_ENV === 'development' && !DISABLE_MOCKS) {
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    
+    const card = mockCards.find((c) => c.id === cardId);
+    if (!card) {
+      throw new Error('Card not found');
+    }
+    
+    return card;
+  }
+
   const response = await fetch(`${API_BASE}/cards/${cardId}`, {
     method: 'GET',
     headers: {
@@ -285,7 +367,7 @@ export const moveCard = async (
   index: number,
   token?: string
 ) => {
-  const response = await fetch(`/api/boards/${boardId}/cards/${cardId}/move`, {
+  const response = await fetch(`${API_BASE}/boards/${boardId}/cards/${cardId}/move`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -313,7 +395,7 @@ export const moveList = async (
   newIndex: number,
   token?: string
 ) => {
-  const response = await fetch(`/api/boards/${boardId}/lists/move`, {
+  const response = await fetch(`${API_BASE}/boards/${boardId}/lists/move`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
