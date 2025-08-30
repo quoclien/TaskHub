@@ -5,6 +5,10 @@ import { arrayMove } from '@dnd-kit/sortable';
 import { useState } from 'react';
 
 // Internal dependencies
+
+import { SkeletonCard } from '@/components/common/LoadingSkeleton';
+import { Button } from '@/components/ui/button';
+
 import {
   BoardCard,
   BoardView,
@@ -13,9 +17,6 @@ import {
   CreateBoardModal,
   CreateCardModal,
 } from './index';
-
-import { SkeletonCard } from '@/components/common/LoadingSkeleton';
-import { Button } from '@/components/ui/button';
 
 // Types
 interface CardProps {
@@ -195,9 +196,9 @@ export function BoardComponentsShowcase() {
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
           {isLoading ? (
             <>
-              <SkeletonCard key="skeleton-1" />
-              <SkeletonCard key="skeleton-2" />
-              <SkeletonCard key="skeleton-3" />
+              <SkeletonCard key='skeleton-1' />
+              <SkeletonCard key='skeleton-2' />
+              <SkeletonCard key='skeleton-3' />
             </>
           ) : (
             mockBoards.map((board) => (

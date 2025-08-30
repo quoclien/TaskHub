@@ -8,5 +8,5 @@ namespace TaskHub.Api.Common;
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 public sealed class DevelopmentOnlyAttribute : Attribute
-{ 
+{
 }

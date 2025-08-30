@@ -41,7 +41,7 @@ var builder = WebApplication.CreateBuilder(args);
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
-    .WriteTo.File("logs/log-.txt", 
+    .WriteTo.File("logs/log-.txt",
         rollingInterval: RollingInterval.Day,
         outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}",
         shared: true,
@@ -52,17 +52,22 @@ builder.Host.UseSerilog();
 #endregion
 
 #region Database
-builder.Services.AddDbContextPool<ApplicationDbContext>(options =>
-    options.UseNpgsql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        npgsqlOptions =>
-        {
-            npgsqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 5,
-                maxRetryDelay: TimeSpan.FromSeconds(30),
-                errorCodesToAdd: null);
-        }), poolSize: 1024);
-builder.Services.AddScoped<DbContext, ApplicationDbContext>();
+// In Testing environment, the test host will configure the DbContext (usually SQLite).
+// Avoid registering a provider here to prevent multiple provider conflicts.
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddDbContextPool<ApplicationDbContext>(options =>
+        options.UseNpgsql(
+            builder.Configuration.GetConnectionString("DefaultConnection"),
+            npgsqlOptions =>
+            {
+                npgsqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorCodesToAdd: null);
+            }), poolSize: 1024);
+    builder.Services.AddScoped<DbContext, ApplicationDbContext>();
+}
 #endregion
 
 #region Repositories and Services
@@ -187,7 +192,7 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policyBuilder =>
     {
-        policyBuilder.WithOrigins("http://localhost:3000", "http://localhost:3001", "https://localhost:3000", "https://localhost:3001")
+        policyBuilder.WithOrigins("http://localhost:3000", "http://localhost:3001", "https://localhost:3000", "https://localhost:3001", "http://127.0.0.1:3000", "http://127.0.0.1:3001")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();

@@ -1,46 +1,36 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 
+import { render, mockUseAuth } from '@/test-utils';
 import { Navigation } from './Navigation';
-
 import { useAuthStore } from '@/hooks/useAuthStore';
 
 // Mock next/navigation
 const mockPush = vi.fn();
-const mockRouter = {
-  push: mockPush,
-};
-
 vi.mock('next/navigation', () => ({
-  useRouter: () => mockRouter,
+  useRouter: () => ({
+    push: mockPush,
+  }),
 }));
 
-// Mock the auth store
+// Mock useAuth hook
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: vi.fn(),
+}));
+
+// Mock useAuthStore hook  
 vi.mock('@/hooks/useAuthStore', () => ({
   useAuthStore: vi.fn(),
 }));
 
 // Mock the board API
 vi.mock('@/lib/api/board', () => ({
-  fetchBoards: vi.fn(),
+  fetchBoards: vi.fn().mockResolvedValue([]),
 }));
 
+const { useAuth } = await import('@/hooks/useAuth');
 const { fetchBoards } = await import('@/lib/api/board');
-
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-      mutations: { retry: false },
-    },
-  });
-
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
-};
 
 describe('Navigation', () => {
   let user: ReturnType<typeof userEvent.setup>;
@@ -57,7 +47,7 @@ describe('Navigation', () => {
 
   describe('when not authenticated', () => {
     it('renders TaskHub logo and sign in/sign up buttons', () => {
-      render(<Navigation />, { wrapper: createWrapper() });
+      render(<Navigation />, {});
 
       expect(screen.getByText('TaskHub')).toBeInTheDocument();
       expect(screen.getByText('Sign In')).toBeInTheDocument();
@@ -65,7 +55,7 @@ describe('Navigation', () => {
     });
 
     it('does not render board switcher or user menu', () => {
-      render(<Navigation />, { wrapper: createWrapper() });
+      render(<Navigation />, {});
 
       expect(screen.queryByText('Select Board')).not.toBeInTheDocument();
       expect(screen.queryByText('Account')).not.toBeInTheDocument();
@@ -73,7 +63,7 @@ describe('Navigation', () => {
     });
 
     it('renders sign in and sign up links correctly', () => {
-      render(<Navigation />, { wrapper: createWrapper() });
+      render(<Navigation />, {});
 
       const signInLink = screen.getByRole('link', { name: 'Sign In' });
       const signUpLink = screen.getByRole('link', { name: 'Sign Up' });
@@ -98,7 +88,7 @@ describe('Navigation', () => {
     });
 
     it('renders board switcher and user menu when authenticated', async () => {
-      render(<Navigation currentBoardId='1' />, { wrapper: createWrapper() });
+      render(<Navigation currentBoardId='1' />, {});
 
       // Wait for boards to load
       await waitFor(() => {
@@ -109,7 +99,7 @@ describe('Navigation', () => {
     });
 
     it('shows current board title in board switcher', async () => {
-      render(<Navigation currentBoardId='1' />, { wrapper: createWrapper() });
+      render(<Navigation currentBoardId='1' />, {});
 
       await waitFor(() => {
         expect(screen.getByText('Project Alpha')).toBeInTheDocument();
@@ -117,7 +107,7 @@ describe('Navigation', () => {
     });
 
     it('shows "Select Board" when no current board is selected', async () => {
-      render(<Navigation />, { wrapper: createWrapper() });
+      render(<Navigation />, {});
 
       await waitFor(() => {
         expect(screen.getByText('Select Board')).toBeInTheDocument();
@@ -125,14 +115,14 @@ describe('Navigation', () => {
     });
 
     it('opens board switcher dropdown when clicked', async () => {
-      render(<Navigation />, { wrapper: createWrapper() });
+      render(<Navigation />, {});
 
       await waitFor(() => {
         expect(screen.getByText('Select Board')).toBeInTheDocument();
       });
 
       const boardSwitcher = screen.getByText('Select Board');
-      
+
       await act(async () => {
         await user.click(boardSwitcher);
       });
@@ -146,14 +136,14 @@ describe('Navigation', () => {
     });
 
     it('navigates to selected board when board option is clicked', async () => {
-      render(<Navigation />, { wrapper: createWrapper() });
+      render(<Navigation />, {});
 
       await waitFor(() => {
         expect(screen.getByText('Select Board')).toBeInTheDocument();
       });
 
       const boardSwitcher = screen.getByText('Select Board');
-      
+
       await act(async () => {
         await user.click(boardSwitcher);
       });
@@ -163,7 +153,7 @@ describe('Navigation', () => {
       });
 
       const projectAlphaOption = screen.getByText('Project Alpha');
-      
+
       await act(async () => {
         await user.click(projectAlphaOption);
       });
@@ -172,14 +162,14 @@ describe('Navigation', () => {
     });
 
     it('opens user menu dropdown when account button is clicked', async () => {
-      render(<Navigation />, { wrapper: createWrapper() });
+      render(<Navigation />, {});
 
       await waitFor(() => {
         expect(screen.getByText('Account')).toBeInTheDocument();
       });
 
       const accountButton = screen.getByText('Account');
-      
+
       await act(async () => {
         await user.click(accountButton);
       });
@@ -199,14 +189,14 @@ describe('Navigation', () => {
         setToken: mockSetToken,
       });
 
-      render(<Navigation />, { wrapper: createWrapper() });
+      render(<Navigation />, {});
 
       await waitFor(() => {
         expect(screen.getByText('Account')).toBeInTheDocument();
       });
 
       const accountButton = screen.getByText('Account');
-      
+
       await act(async () => {
         await user.click(accountButton);
       });
@@ -216,7 +206,7 @@ describe('Navigation', () => {
       });
 
       const signOutButton = screen.getByText('Sign Out');
-      
+
       await act(async () => {
         await user.click(signOutButton);
       });
@@ -227,15 +217,15 @@ describe('Navigation', () => {
 
     it('handles profile navigation when profile button is clicked', async () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-      
-      render(<Navigation />, { wrapper: createWrapper() });
+
+      render(<Navigation />, {});
 
       await waitFor(() => {
         expect(screen.getByText('Account')).toBeInTheDocument();
       });
 
       const accountButton = screen.getByText('Account');
-      
+
       await act(async () => {
         await user.click(accountButton);
       });
@@ -245,7 +235,7 @@ describe('Navigation', () => {
       });
 
       const profileButton = screen.getByText('Profile');
-      
+
       await act(async () => {
         await user.click(profileButton);
       });
@@ -256,15 +246,15 @@ describe('Navigation', () => {
 
     it('handles settings navigation when settings button is clicked', async () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-      
-      render(<Navigation />, { wrapper: createWrapper() });
+
+      render(<Navigation />, {});
 
       await waitFor(() => {
         expect(screen.getByText('Account')).toBeInTheDocument();
       });
 
       const accountButton = screen.getByText('Account');
-      
+
       await act(async () => {
         await user.click(accountButton);
       });
@@ -274,7 +264,7 @@ describe('Navigation', () => {
       });
 
       const settingsButton = screen.getByText('Settings');
-      
+
       await act(async () => {
         await user.click(settingsButton);
       });
@@ -286,7 +276,7 @@ describe('Navigation', () => {
     it('shows loading state for boards', () => {
       vi.mocked(fetchBoards as any).mockImplementation(() => new Promise(() => {})); // Never resolves
 
-      render(<Navigation />, { wrapper: createWrapper() });
+      render(<Navigation />, {});
 
       expect(screen.getByText('Loading boards...')).toBeInTheDocument();
     });
@@ -294,7 +284,7 @@ describe('Navigation', () => {
     it('does not show board switcher when boards are loading and no current board', () => {
       vi.mocked(fetchBoards as any).mockImplementation(() => new Promise(() => {})); // Never resolves
 
-      render(<Navigation />, { wrapper: createWrapper() });
+      render(<Navigation />, {});
 
       expect(screen.getByText('Loading boards...')).toBeInTheDocument();
       expect(screen.queryByText('Select Board')).not.toBeInTheDocument();
@@ -309,7 +299,7 @@ describe('Navigation', () => {
         setToken: vi.fn(),
       });
 
-      const { rerender } = render(<Navigation />, { wrapper: createWrapper() });
+      const { rerender } = render(<Navigation />, {});
 
       expect(screen.getByText('Sign In')).toBeInTheDocument();
       expect(screen.queryByText('Account')).not.toBeInTheDocument();
@@ -338,7 +328,7 @@ describe('Navigation', () => {
       });
       vi.mocked(fetchBoards as any).mockResolvedValue([]);
 
-      render(<Navigation />, { wrapper: createWrapper() });
+      render(<Navigation />, {});
 
       await waitFor(() => {
         expect(screen.getByText('Account')).toBeInTheDocument();
@@ -355,19 +345,19 @@ describe('Navigation', () => {
       });
       vi.mocked(fetchBoards as any).mockResolvedValue([]);
 
-      render(<Navigation />, { wrapper: createWrapper() });
+      render(<Navigation />, {});
 
       await waitFor(() => {
         expect(screen.getByText('Account')).toBeInTheDocument();
       });
 
       const accountButton = screen.getByRole('button', { name: /account/i });
-      
+
       // Focus the button
       await act(async () => {
         accountButton.focus();
       });
-      
+
       expect(accountButton).toHaveFocus();
 
       // Press Enter to open menu

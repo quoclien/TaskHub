@@ -6,7 +6,7 @@ namespace TaskHub.Api.Models.Dtos.Lists
     {
         [MaxLength(100)]
         public string? Title { get; set; }
-        
+
         public int? Position { get; set; }
 
         public Guid? BoardId { get; set; }

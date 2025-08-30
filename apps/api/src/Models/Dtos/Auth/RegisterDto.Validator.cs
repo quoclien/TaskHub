@@ -30,4 +30,4 @@ public class RegisterDtoValidator : AbstractValidator<RegisterDto>
             .MaximumLength(50).WithMessage("Last name must not exceed 50 characters")
             .When(x => !string.IsNullOrEmpty(x.LastName));
     }
-} 
+}

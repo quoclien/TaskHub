@@ -35,9 +35,9 @@ namespace TaskHub.Api.Core.Authorization
             }
 
             // Get user ID from claims
-            var userIdClaim = context.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier) 
+            var userIdClaim = context.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)
                            ?? context.HttpContext.User.FindFirst("sub");
-            
+
             if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
             {
                 context.Result = new UnauthorizedResult();
@@ -64,7 +64,7 @@ namespace TaskHub.Api.Core.Authorization
             {
                 // Check user's role in the board
                 var userRole = await boardRepository.GetUserRoleInBoardAsync(userId, boardId);
-                
+
                 if (userRole == null)
                 {
                     context.Result = new ForbidResult("You do not have access to this board");
@@ -100,4 +100,4 @@ namespace TaskHub.Api.Core.Authorization
             return (int)userRole <= (int)minimumRole;
         }
     }
-} 
+}

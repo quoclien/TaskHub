@@ -25,13 +25,13 @@ namespace TaskHub.Api.Core.Models.Pagination
         {
             if (items == null)
                 throw new ArgumentNullException(nameof(items));
-                
+
             if (pageNumber < 1)
                 throw new ArgumentOutOfRangeException(nameof(pageNumber), "Page number must be greater than 0.");
-                
+
             if (pageSize < 1)
                 throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be greater than 0.");
-                
+
             if (totalCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(totalCount), "Total count cannot be negative.");
 
@@ -81,19 +81,19 @@ namespace TaskHub.Api.Core.Models.Pagination
         /// <param name="pageSize">The number of items per page</param>
         /// <returns>A paginated list containing the items</returns>
         public static async Task<PaginatedList<T>> CreateAsync(
-            IQueryable<T> source, 
-            int pageNumber, 
+            IQueryable<T> source,
+            int pageNumber,
             int pageSize)
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
-                
+
             var count = await source.CountAsync();
             var items = await source
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
-                
+
             return new PaginatedList<T>(items, count, pageNumber, pageSize);
         }
 
@@ -107,12 +107,12 @@ namespace TaskHub.Api.Core.Models.Pagination
         {
             if (selector == null)
                 throw new ArgumentNullException(nameof(selector));
-                
+
             var projectedItems = _items.Select(selector).ToList();
             return new PaginatedList<TResult>(
-                projectedItems, 
-                TotalCount, 
-                PageNumber, 
+                projectedItems,
+                TotalCount,
+                PageNumber,
                 PageSize);
         }
     }

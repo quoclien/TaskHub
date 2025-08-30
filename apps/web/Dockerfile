@@ -17,8 +17,8 @@ RUN pnpm install --frozen-lockfile
 # Copy source code
 COPY . .
 
-# Build the application
-RUN pnpm run build:web
+# Build the application (Next.js will find src/app automatically)
+RUN npx next build
 
 # Production stage
 FROM node:20-alpine AS runner

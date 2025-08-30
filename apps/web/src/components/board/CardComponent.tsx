@@ -4,7 +4,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { formatRelativeTime, isPast } from '@taskhub/shared';
-import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 // Internal dependencies
 import { cn } from '@/lib/utils';
@@ -52,6 +52,10 @@ export function CardComponent({
   index,
   className,
 }: CardComponentProps) {
+  // Hooks
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   // DnD Hooks
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
@@ -69,8 +73,13 @@ export function CardComponent({
 
   // Event Handlers
   const handleCardClick = (e: React.MouseEvent) => {
-    // Allow event bubbling for link navigation
+    e.preventDefault();
     e.stopPropagation();
+
+    // Add cardId to URL params to open modal
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('cardId', id);
+    router.replace(`?${params.toString()}`);
   };
 
   // Render Helpers
@@ -152,23 +161,18 @@ export function CardComponent({
         isDragging && 'opacity-50',
         className
       )}
+      onClick={handleCardClick}
     >
-      <Link
-        href={`/board/${boardId}/card/${id}`}
-        onClick={handleCardClick}
-        className='block'
-      >
-        <div>
-          {/* Labels */}
-          {renderLabels()}
+      <div>
+        {/* Labels */}
+        {renderLabels()}
 
-          {/* Title */}
-          <h4 className='font-medium text-sm text-card-foreground line-clamp-3 mb-1'>{title}</h4>
+        {/* Title */}
+        <h4 className='font-medium text-sm text-card-foreground line-clamp-3 mb-1'>{title}</h4>
 
-          {/* Footer with due date and members */}
-          {renderFooter()}
-        </div>
-      </Link>
+        {/* Footer with due date and members */}
+        {renderFooter()}
+      </div>
     </div>
   );
 }

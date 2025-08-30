@@ -11,7 +11,7 @@ import {
   formatFileSize,
   randomString,
   slugify,
-  maskSensitive
+  maskSensitive,
 } from '../format';
 
 describe('format utilities', () => {

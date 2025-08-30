@@ -10,4 +10,4 @@ namespace TaskHub.Api.Models.Dtos.Auth
         [Required]
         public string Password { get; set; } = string.Empty;
     }
-} 
+}

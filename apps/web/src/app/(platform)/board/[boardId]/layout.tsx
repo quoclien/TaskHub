@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 
 import { fetchBoardById } from '@/lib/api/board';
 
+import { ModalProvider } from './_components/ModalProvider';
+
 export async function generateMetadata({
   params,
 }: {
@@ -23,5 +25,11 @@ export async function generateMetadata({
 }
 
 export default function BoardLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      {children}
+      {/* Global modals scoped to board routes */}
+      <ModalProvider />
+    </>
+  );
 }

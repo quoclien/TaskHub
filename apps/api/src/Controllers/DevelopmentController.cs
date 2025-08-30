@@ -45,8 +45,9 @@ namespace TaskHub.Api.Controllers
             var existingUser = await _userRepository.GetByEmailAsync("test@example.com");
             if (existingUser != null)
             {
-                return Ok(new { 
-                    id = existingUser.Id, 
+                return Ok(new
+                {
+                    id = existingUser.Id,
                     email = existingUser.Email,
                     message = "Test user already exists"
                 });
@@ -68,8 +69,9 @@ namespace TaskHub.Api.Controllers
             await _userRepository.AddAsync(testUser);
             await _unitOfWork.SaveChangesAsync();
 
-            return Ok(new { 
-                id = testUser.Id, 
+            return Ok(new
+            {
+                id = testUser.Id,
                 email = testUser.Email,
                 message = "Test user created successfully"
             });
@@ -110,8 +112,8 @@ namespace TaskHub.Api.Controllers
                         UpdatedAt = DateTime.UtcNow
                     };
 
-                                         await _userRepository.AddAsync(testUser);
-                     await _unitOfWork.SaveChangesAsync();
+                    await _userRepository.AddAsync(testUser);
+                    await _unitOfWork.SaveChangesAsync();
                 }
                 actualUserId = testUser.Id;
             }
@@ -140,7 +142,8 @@ namespace TaskHub.Api.Controllers
             );
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            return Ok(new { 
+            return Ok(new
+            {
                 token = tokenHandler.WriteToken(token),
                 userId = actualUserId,
                 email = (await _userRepository.GetByIdAsync(actualUserId))?.Email
@@ -183,7 +186,7 @@ namespace TaskHub.Api.Controllers
         public async Task<IActionResult> ListUsers()
         {
             var users = await _userRepository.GetAllAsync();
-            var userList = users.Select(u => new 
+            var userList = users.Select(u => new
             {
                 Id = u.Id,
                 Username = u.Username,
@@ -194,7 +197,7 @@ namespace TaskHub.Api.Controllers
                 HasPassword = !string.IsNullOrEmpty(u.PasswordHash)
             }).ToList();
 
-            return Ok(new 
+            return Ok(new
             {
                 Count = userList.Count,
                 Users = userList
@@ -248,9 +251,10 @@ namespace TaskHub.Api.Controllers
                 await _userRepository.AddAsync(demoUser);
                 await _unitOfWork.SaveChangesAsync();
 
-                return Ok(new { 
+                return Ok(new
+                {
                     message = "Database seeded successfully",
-                    usersCreated = new[] { 
+                    usersCreated = new[] {
                         new { adminUser.Username, adminUser.Email },
                         new { demoUser.Username, demoUser.Email }
                     }
@@ -283,12 +287,12 @@ namespace TaskHub.Api.Controllers
 
                     foreach (var testPassword in testPasswords)
                     {
-                        var isValid = !string.IsNullOrEmpty(user.PasswordHash) && 
+                        var isValid = !string.IsNullOrEmpty(user.PasswordHash) &&
                                      BCrypt.Net.BCrypt.Verify(testPassword, user.PasswordHash);
                         passwordResults.Add(new { password = testPassword, isValid });
                     }
 
-                    results.Add(new 
+                    results.Add(new
                     {
                         user.Username,
                         user.Email,
@@ -363,10 +367,11 @@ namespace TaskHub.Api.Controllers
 
                 if (!adminVerification || !demoVerification)
                 {
-                    return BadRequest(new { 
+                    return BadRequest(new
+                    {
                         error = "Password verification failed during creation",
                         adminVerification,
-                        demoVerification 
+                        demoVerification
                     });
                 }
 
@@ -374,18 +379,19 @@ namespace TaskHub.Api.Controllers
                 await _userRepository.AddAsync(demoUser);
                 await _unitOfWork.SaveChangesAsync();
 
-                return Ok(new { 
+                return Ok(new
+                {
                     message = "Users reset successfully with verified credentials",
-                    users = new[] { 
-                        new { 
-                            adminUser.Username, 
-                            adminUser.Email, 
+                    users = new[] {
+                        new {
+                            adminUser.Username,
+                            adminUser.Email,
                             password = adminPassword,
                             hashVerified = adminVerification
                         },
-                        new { 
-                            demoUser.Username, 
-                            demoUser.Email, 
+                        new {
+                            demoUser.Username,
+                            demoUser.Email,
                             password = demoPassword,
                             hashVerified = demoVerification
                         }
@@ -446,9 +452,10 @@ namespace TaskHub.Api.Controllers
                 await _userRepository.AddAsync(demoUser);
                 await _unitOfWork.SaveChangesAsync();
 
-                return Ok(new { 
+                return Ok(new
+                {
                     message = "Database seeded successfully",
-                    usersCreated = new[] { 
+                    usersCreated = new[] {
                         new { adminUser.Username, adminUser.Email },
                         new { demoUser.Username, demoUser.Email }
                     }

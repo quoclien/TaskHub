@@ -92,8 +92,8 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
 
         public async Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null)
         {
-            return predicate == null 
-                ? await _dbSet.CountAsync() 
+            return predicate == null
+                ? await _dbSet.CountAsync()
                 : await _dbSet.CountAsync(predicate);
         }
 
@@ -101,12 +101,12 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
         public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, bool tracking = true)
         {
             var query = _dbSet.AsQueryable();
-            
+
             if (!tracking)
             {
                 query = query.AsNoTracking();
             }
-            
+
             return await query.FirstOrDefaultAsync(predicate);
         }
 
@@ -114,12 +114,12 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
         public async Task<T?> SingleOrDefaultAsync(Expression<Func<T, bool>> predicate, bool tracking = true)
         {
             var query = _dbSet.AsQueryable();
-            
+
             if (!tracking)
             {
                 query = query.AsNoTracking();
             }
-            
+
             return await query.SingleOrDefaultAsync(predicate);
         }
 
@@ -133,7 +133,7 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
         {
             if (pageNumber < 1)
                 throw new ArgumentOutOfRangeException(nameof(pageNumber), "Page number must be greater than 0.");
-                
+
             if (pageSize < 1)
                 throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be greater than 0.");
 
@@ -145,11 +145,11 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
             }
 
             var totalCount = await query.CountAsync();
-            
+
             if (orderBy != null)
             {
-                query = descending 
-                    ? query.OrderByDescending(orderBy) 
+                query = descending
+                    ? query.OrderByDescending(orderBy)
                     : query.OrderBy(orderBy);
             }
             else
@@ -168,13 +168,13 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
 
         /// <inheritdoc />
         public async Task LoadCollectionAsync<TProperty>(
-            T entity, 
-            Expression<Func<T, IEnumerable<TProperty>>> navigationProperty) 
+            T entity,
+            Expression<Func<T, IEnumerable<TProperty>>> navigationProperty)
             where TProperty : class
         {
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
-                
+
             if (navigationProperty == null)
                 throw new ArgumentNullException(nameof(navigationProperty));
 
@@ -186,16 +186,16 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
 
             await entry.Collection(navigationProperty).LoadAsync();
         }
-            
+
         /// <inheritdoc />
         public async Task LoadReferenceAsync<TProperty>(
-            T entity, 
-            Expression<Func<T, TProperty?>> navigationProperty) 
+            T entity,
+            Expression<Func<T, TProperty?>> navigationProperty)
             where TProperty : class
         {
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
-                
+
             if (navigationProperty == null)
                 throw new ArgumentNullException(nameof(navigationProperty));
 
@@ -213,11 +213,11 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
         {
             if (string.IsNullOrWhiteSpace(sql))
                 throw new ArgumentException("SQL query cannot be null or whitespace.", nameof(sql));
-                
+
             // Convert object parameters to SqlParameter to prevent SQL injection
-            var sqlParameters = parameters.Select((p, i) => 
-                p is SqlParameter param 
-                    ? param 
+            var sqlParameters = parameters.Select((p, i) =>
+                p is SqlParameter param
+                    ? param
                     : new SqlParameter($"@p{i}", p ?? DBNull.Value)).ToArray();
 
             return await _dbSet.FromSqlRaw(sql, sqlParameters).ToListAsync();

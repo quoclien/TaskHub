@@ -9,23 +9,23 @@ namespace TaskHub.Api.Models.Dtos.Cards
     {
         [MaxLength(200)]
         public string? Title { get; set; }
-        
+
         [MaxLength(2000)]
         public string? Description { get; set; }
-        
+
         public int? Position { get; set; }
-        
+
         public Guid? ListId { get; set; }
-        
+
         public Guid? AssignedTo { get; set; }
-        
+
         public DateTime? DueDate { get; set; }
-        
+
         public bool? IsArchived { get; set; }
-        
+
         // Metadata as a JSON string that will be parsed into JsonDocument
         public string? Metadata { get; set; }
-        
+
         // Helper method to get metadata as dictionary
         public Dictionary<string, object> GetMetadataAsDictionary()
         {
@@ -44,7 +44,7 @@ namespace TaskHub.Api.Models.Dtos.Cards
                 return new Dictionary<string, object>();
             }
         }
-        
+
         // Helper method to set metadata from dictionary
         public void SetMetadataFromDictionary(Dictionary<string, object> metadata)
         {

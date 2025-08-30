@@ -33,7 +33,7 @@ namespace TaskHub.Api.Core.Services
             IUserRepository userRepository,
             IMapper mapper,
             ILogger<BoardService> logger,
-            IUnitOfWork unitOfWork) 
+            IUnitOfWork unitOfWork)
             : base(unitOfWork)
         {
             _boardRepository = boardRepository ?? throw new ArgumentNullException(nameof(boardRepository));
@@ -47,7 +47,7 @@ namespace TaskHub.Api.Core.Services
             if (createBoardDto == null)
                 throw new ArgumentNullException(nameof(createBoardDto));
 
-            var user = await _userRepository.GetByIdAsync(userId) 
+            var user = await _userRepository.GetByIdAsync(userId)
                 ?? throw new NotFoundException(UserNotFound);
 
             var board = _mapper.Map<BoardEntity>(createBoardDto);
@@ -190,7 +190,7 @@ namespace TaskHub.Api.Core.Services
             }
         }
 
-public async Task<bool> AddBoardMemberAsync(Guid boardId, Guid userId, Guid currentUserId, BoardRole role = BoardRole.Member)
+        public async Task<bool> AddBoardMemberAsync(Guid boardId, Guid userId, Guid currentUserId, BoardRole role = BoardRole.Member)
         {
             if (boardId == Guid.Empty)
                 throw new ArgumentException("Board ID cannot be empty", nameof(boardId));

@@ -25,7 +25,7 @@ namespace TaskHub.Api.Common.Swagger
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
             var apiDescription = context.ApiDescription;
-            
+
             // Check if the API version is deprecated using the ApiVersionDescription
             var apiVersionDescription = context.ApiDescription.GetApiVersion();
             if (apiVersionDescription != null)

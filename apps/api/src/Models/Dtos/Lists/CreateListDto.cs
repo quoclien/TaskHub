@@ -7,7 +7,7 @@ namespace TaskHub.Api.Models.Dtos.Lists
         [Required]
         [MaxLength(100)]
         public string Title { get; set; } = string.Empty;
-        
+
         public int Position { get; set; }
     }
 }

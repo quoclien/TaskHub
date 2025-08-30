@@ -58,25 +58,29 @@ function AuthErrorContent() {
             <h2 className='text-sm font-medium text-red-800 dark:text-red-400 mb-2'>
               Error Details
             </h2>
-            <p className='text-sm text-red-700 dark:text-red-300'>
-              {getErrorMessage(error)}
-            </p>
+            <p className='text-sm text-red-700 dark:text-red-300'>{getErrorMessage(error)}</p>
             {error && (
-              <p className='text-xs text-red-600 dark:text-red-400 mt-2'>
-                Error code: {error}
-              </p>
+              <p className='text-xs text-red-600 dark:text-red-400 mt-2'>Error code: {error}</p>
             )}
           </div>
 
           <div className='space-y-3'>
-            <Button asChild className='w-full'>
-              <Link href='/sign-in'>
-                Try Again
-              </Link>
+            <Button
+              asChild
+              className='w-full'
+            >
+              <Link href='/sign-in'>Try Again</Link>
             </Button>
-            
-            <Button variant='outline' asChild className='w-full'>
-              <Link href='/' className='flex items-center justify-center gap-2'>
+
+            <Button
+              variant='outline'
+              asChild
+              className='w-full'
+            >
+              <Link
+                href='/'
+                className='flex items-center justify-center gap-2'
+              >
                 <ArrowLeft className='h-4 w-4' />
                 Back to Home
               </Link>
@@ -102,12 +106,14 @@ function AuthErrorContent() {
 
 export default function AuthError() {
   return (
-    <Suspense fallback={
-      <div className='min-h-screen flex items-center justify-center'>
-        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600'></div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className='min-h-screen flex items-center justify-center'>
+          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600'></div>
+        </div>
+      }
+    >
       <AuthErrorContent />
     </Suspense>
   );
-} 
+}

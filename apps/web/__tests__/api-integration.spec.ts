@@ -1,6 +1,7 @@
-import { test, expect, type Page } from './test-utils';
 import { faker } from '@faker-js/faker';
 import type { Route, Request } from '@playwright/test';
+
+import { test, expect, type Page } from './test-utils';
 
 test.describe('API Integration & Error Handling', () => {
   test('should handle network errors when fetching boards', async ({ page }) => {
@@ -10,7 +11,7 @@ test.describe('API Integration & Error Handling', () => {
     });
 
     await page.goto('/boards');
-    
+
     // Verify error state is shown
     await expect(page.getByText(/failed to fetch boards/i)).toBeVisible();
   });
@@ -26,7 +27,7 @@ test.describe('API Integration & Error Handling', () => {
     });
 
     await page.goto('/boards');
-    
+
     // Verify user is redirected to sign-in page
     await expect(page).toHaveURL(/\/sign-in/);
     await expect(page.getByText(/please sign in/i)).toBeVisible();
@@ -43,14 +44,14 @@ test.describe('API Integration & Error Handling', () => {
     });
 
     await authenticatedPage.goto('/board/non-existent-board');
-    
+
     // Verify 404 error state is shown
     await expect(authenticatedPage.getByText(/board not found/i)).toBeVisible();
   });
 
   test('should handle validation errors when creating a board', async ({ authenticatedPage }) => {
     await authenticatedPage.goto('/boards');
-    
+
     // Mock validation error response
     await authenticatedPage.route('**/api/boards', (route: Route) => {
       const request = route.request();
@@ -72,10 +73,10 @@ test.describe('API Integration & Error Handling', () => {
 
     // Open create board dialog
     await authenticatedPage.getByRole('button', { name: /create board/i }).click();
-    
+
     // Submit form without required fields
     await authenticatedPage.getByRole('button', { name: /create board/i }).click();
-    
+
     // Verify validation error is shown
     await expect(authenticatedPage.getByText(/title is required/i)).toBeVisible();
   });
@@ -87,19 +88,22 @@ test.describe('API Integration & Error Handling', () => {
     const boardTitle = `Test Board ${faker.lorem.words(2)}`;
     await authenticatedPage.getByLabel(/board title/i).fill(boardTitle);
     await authenticatedPage.getByRole('button', { name: /create board/i }).click();
-    
+
     // Add two lists
     await authenticatedPage.getByPlaceholder('Enter list title...').fill('To Do');
     await authenticatedPage.getByRole('button', { name: /add list/i }).click();
     await authenticatedPage.getByPlaceholder('Enter list title...').fill('In Progress');
     await authenticatedPage.getByRole('button', { name: /add list/i }).click();
-    
+
     // Add a card to the first list
     const cardTitle = 'Test Card';
-    await authenticatedPage.getByRole('button', { name: /add a card/i }).first().click();
+    await authenticatedPage
+      .getByRole('button', { name: /add a card/i })
+      .first()
+      .click();
     await authenticatedPage.getByPlaceholder('Enter a title for this card...').fill(cardTitle);
     await authenticatedPage.getByRole('button', { name: /add card/i }).click();
-    
+
     // Mock the API response for moving the card
     await authenticatedPage.route('**/api/cards/*/move', (route: Route) => {
       // Simulate network delay
@@ -112,24 +116,28 @@ test.describe('API Integration & Error Handling', () => {
       }, 1000);
 
       // Clean up the timeout if the request is cancelled
-      void route.request().on('close', () => clearTimeout(timeoutId));
+      void route.request().on('close', () => {
+        clearTimeout(timeoutId);
+      });
     });
-    
+
     // Get the card and target list
     const card = authenticatedPage.getByRole('button', { name: cardTitle });
-    const targetList = authenticatedPage.getByRole('heading', { level: 3, name: 'In Progress' }).locator('..');
-    
+    const targetList = authenticatedPage
+      .getByRole('heading', { level: 3, name: 'In Progress' })
+      .locator('..');
+
     // Drag and drop the card with proper error handling
     try {
       await card.dragTo(targetList);
-      
+
       // Verify the card appears in the target list immediately (optimistic update)
       await expect(targetList.getByText(cardTitle)).toBeVisible();
-      
+
       // Wait for the API call to complete
       const response = await authenticatedPage.waitForResponse('**/api/cards/*/move');
       expect(response.status()).toBe(200);
-      
+
       // Verify the card is still in the target list after API call
       await expect(targetList.getByText(cardTitle)).toBeVisible();
     } catch (error) {
@@ -145,17 +153,17 @@ test.describe('API Integration & Error Handling', () => {
     const boardTitle = `Test Board ${faker.lorem.words(2)}`;
     await authenticatedPage.getByLabel(/board title/i).fill(boardTitle);
     await authenticatedPage.getByRole('button', { name: /create board/i }).click();
-    
+
     // Add a list
     await authenticatedPage.getByPlaceholder('Enter list title...').fill('To Do');
     await authenticatedPage.getByRole('button', { name: /add list/i }).click();
-    
+
     // Add a card to the list
     const cardTitle = 'Test Card';
     await authenticatedPage.getByRole('button', { name: /add a card/i }).click();
     await authenticatedPage.getByPlaceholder('Enter a title for this card...').fill(cardTitle);
     await authenticatedPage.getByRole('button', { name: /add card/i }).click();
-    
+
     // Mock a failed API response for deleting the card
     await authenticatedPage.route('**/api/cards/*', (route: Route) => {
       const request = route.request();
@@ -169,24 +177,24 @@ test.describe('API Integration & Error Handling', () => {
         void route.continue();
       }
     });
-    
+
     // Open the card with error handling
     try {
       const cardElement = authenticatedPage.getByText(cardTitle);
       await cardElement.click();
-      
+
       // Click delete button with confirmation
       const deleteButton = authenticatedPage.getByRole('button', { name: /delete/i });
       await deleteButton.click();
-      
+
       const confirmButton = authenticatedPage.getByRole('button', { name: /confirm/i });
       await confirmButton.click();
-      
+
       // Verify error message is shown
       await expect(authenticatedPage.getByText(/failed to delete card/i)).toBeVisible({
         timeout: 5000,
       });
-      
+
       // Verify the card is still visible (since the delete failed)
       await expect(cardElement).toBeVisible();
     } catch (error) {

@@ -1,6 +1,6 @@
 import type { Board } from '@taskhub/shared';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5205/api';
 
 // Mock data for development
 const mockBoards = [
@@ -35,8 +35,9 @@ const mockBoards = [
 ];
 
 export const fetchBoards = async () => {
-  // For development, return mock data
-  if (process.env.NODE_ENV === 'development') {
+  // For development, return mock data unless explicitly disabled for E2E testing
+  const DISABLE_MOCKS = process.env.NEXT_PUBLIC_DISABLE_MOCKS === 'true';
+  if (process.env.NODE_ENV === 'development' && !DISABLE_MOCKS) {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 500));
     return mockBoards;
@@ -58,9 +59,7 @@ export const fetchBoards = async () => {
   return response.json();
 };
 
-export const createBoard = async (
-  board: { title: string; description?: string }
-) => {
+export const createBoard = async (board: { title: string; description?: string }) => {
   const response = await fetch(`${API_BASE}/boards`, {
     method: 'POST',
     headers: {
@@ -127,6 +126,22 @@ export const createCard = async (
 
   if (!response.ok) {
     throw new Error('Failed to create card');
+  }
+
+  return response.json();
+};
+
+export const getCardById = async (cardId: string) => {
+  const response = await fetch(`${API_BASE}/cards/${cardId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include', // Include cookies for session-based auth
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch card');
   }
 
   return response.json();
@@ -217,11 +232,10 @@ const mockLists = [
   },
 ];
 
-export const fetchBoardById = async (
-  boardId: string
-): Promise<Board> => {
-  // In development, return mock data
-  if (process.env.NODE_ENV === 'development') {
+export const fetchBoardById = async (boardId: string): Promise<Board> => {
+  // In development, return mock data unless explicitly disabled for E2E testing
+  const DISABLE_MOCKS = process.env.NEXT_PUBLIC_DISABLE_MOCKS === 'true';
+  if (process.env.NODE_ENV === 'development' && !DISABLE_MOCKS) {
     console.log('Using mock data for board:', boardId);
     await new Promise((resolve) => setTimeout(resolve, 500));
 

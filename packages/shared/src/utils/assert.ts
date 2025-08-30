@@ -111,7 +111,7 @@ export function assertSchema<T>(
  */
 export function assertInstanceOf<T>(
   value: unknown,
-  constructor: new (...args: any[]) => T,
+  constructor: new (...args: unknown[]) => T,
   message = `Expected instance of ${constructor.name}`,
 ): T {
   assert(value instanceof constructor, message);

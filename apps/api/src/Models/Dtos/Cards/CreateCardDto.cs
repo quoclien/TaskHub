@@ -9,14 +9,14 @@ namespace TaskHub.Api.Models.Dtos.Cards
         [Required]
         [MaxLength(200)]
         public string Title { get; set; } = string.Empty;
-        
+
         [MaxLength(2000)]
         public string? Description { get; set; }
-        
+
         public int Position { get; set; }
-        
+
         public Guid? AssignedTo { get; set; }
-        
+
         public DateTime? DueDate { get; set; }
     }
 }

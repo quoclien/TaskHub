@@ -10,7 +10,7 @@ namespace TaskHub.Api.Models.Entities.Boards
         public Guid BoardId { get; set; }
         public BoardRole Role { get; set; }
         public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
-        
+
         // Navigation properties
         public virtual User User { get; set; } = null!;
         public virtual Board Board { get; set; } = null!;

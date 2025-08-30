@@ -1,77 +1,92 @@
+import { ReactElement } from 'react';
+import { render, RenderOptions } from '@testing-library/react';
+import { SessionProvider } from 'next-auth/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import type { RenderOptions } from '@testing-library/react';
-import { render } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { http } from 'msw';
-import type { ReactElement, ReactNode } from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import { vi } from 'vitest';
 
-import { server } from './mocks/server';
+// Mock session data
+const mockSession = {
+  user: {
+    id: '1',
+    name: 'Test User',
+    email: 'test@example.com',
+  },
+  expires: '2024-12-31',
+};
 
-type HttpMethod = 'get' | 'post' | 'put' | 'delete' | 'patch';
-
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace jest {
-    interface Matchers<R> {
-      toBeInTheDocument(): R;
-    }
-  }
-}
-
-// Create a custom render function that includes providers
-const customRender = (ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) => {
-  // Create a new QueryClient for each test
-  const queryClient = new QueryClient({
+// Create a new QueryClient for each test to avoid state pollution
+const createTestQueryClient = () =>
+  new QueryClient({
     defaultOptions: {
       queries: {
-        retry: false, // Disable retries for testing
+        retry: false,
+      },
+      mutations: {
+        retry: false,
       },
     },
   });
 
-  const Wrapper = ({ children }: { children: ReactNode }) => (
+interface TestProvidersProps {
+  children: React.ReactNode;
+  session?: any;
+}
+
+const TestProviders = ({ children, session = null }: TestProvidersProps) => {
+  const queryClient = createTestQueryClient();
+
+  return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>{children}</BrowserRouter>
+      <SessionProvider session={session}>
+        {children}
+      </SessionProvider>
     </QueryClientProvider>
   );
+};
 
-  return {
-    user: userEvent.setup(),
-    ...render(ui, { wrapper: Wrapper, ...options }),
-  };
+// Custom render function that includes providers
+const customRender = (
+  ui: ReactElement,
+  options?: Omit<RenderOptions, 'wrapper'> & {
+    session?: any;
+  }
+) => {
+  const { session, ...renderOptions } = options || {};
+  
+  return render(ui, {
+    wrapper: ({ children }) => (
+      <TestProviders session={session}>{children}</TestProviders>
+    ),
+    ...renderOptions,
+  });
 };
 
 // Re-export everything
 export * from '@testing-library/react';
-// Override render method
 export { customRender as render };
 
-// Re-export user event for convenience
-export * from '@testing-library/user-event';
+// Export utilities for test setup
+export { mockSession, createTestQueryClient };
 
-// Export MSW utilities
-export { server };
+// Mock hooks for testing
+export const mockUseAuth = (overrides = {}) => {
+  return {
+    isAuthenticated: false,
+    user: null,
+    loading: false,
+    signIn: vi.fn(),
+    signOut: vi.fn(),
+    ...overrides,
+  };
+};
 
-// Helper to wait for loading to finish
-export const waitForLoadingToFinish = () => new Promise((resolve) => setTimeout(resolve, 0));
-
-// Helper to mock API errors
-export const mockApiError = (
-  method: HttpMethod,
-  endpoint: string,
-  status = 500,
-  error: unknown = {}
-) => {
-  const handler = http[method](endpoint, () => {
-    return new Response(JSON.stringify(error), {
-      status,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-  });
-
-  server.use(handler);
-  return handler;
+export const mockUseBoardStore = (overrides = {}) => {
+  return {
+    boards: [],
+    currentBoard: null,
+    isLoading: false,
+    fetchBoards: vi.fn(),
+    setCurrentBoard: vi.fn(),
+    ...overrides,
+  };
 };

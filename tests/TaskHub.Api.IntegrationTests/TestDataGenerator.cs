@@ -91,14 +91,14 @@ namespace TaskHub.Api.IntegrationTests
         {
             var boardId = Guid.NewGuid();
             var ownerIdValue = ownerId ?? Guid.NewGuid();
-            User? owner = createOwner ? new User 
-            { 
+            User? owner = createOwner ? new User
+            {
                 Id = ownerIdValue,
                 Username = "testuser",
                 Email = "test@example.com",
                 IsActive = true
             } : null;
-            
+
             var board = new Board
             {
                 Id = boardId,
@@ -111,11 +111,11 @@ namespace TaskHub.Api.IntegrationTests
                 Lists = new List<List>(),
                 BoardMembers = new List<BoardMember>()
             };
-            
+
             // Ensure required navigation properties are set
             board.Lists ??= new List<List>();
             board.BoardMembers ??= new List<BoardMember>();
-            
+
             return board;
         }
 
@@ -126,10 +126,10 @@ namespace TaskHub.Api.IntegrationTests
         {
             var listId = Guid.NewGuid();
             var actualBoard = board ?? GenerateTestBoard(createOwner: true);
-            
+
             // Ensure the board has its collections initialized
             actualBoard.Lists ??= new List<List>();
-            
+
             var list = new List
             {
                 Id = listId,
@@ -141,10 +141,10 @@ namespace TaskHub.Api.IntegrationTests
                 UpdatedAt = DateTime.UtcNow,
                 Cards = new List<Card>()
             };
-            
+
             // Add the list to the board's collection
             actualBoard.Lists.Add(list);
-            
+
             return list;
         }
 
@@ -155,10 +155,10 @@ namespace TaskHub.Api.IntegrationTests
         {
             var cardId = Guid.NewGuid();
             var actualList = list ?? GenerateTestList();
-            
+
             // Ensure the list has its cards collection initialized
             actualList.Cards ??= new List<Card>();
-            
+
             var card = new Card
             {
                 Id = cardId,
@@ -172,11 +172,30 @@ namespace TaskHub.Api.IntegrationTests
                 DueDate = DateTime.UtcNow.AddDays(7),
                 IsArchived = false
             };
-            
+
             // Add the card to the list's collection
             actualList.Cards.Add(card);
-            
+
             return card;
+        }
+
+        /// <summary>
+        /// Creates a test user for testing purposes
+        /// </summary>
+        public static User GenerateTestUser(string username = "testuser", string email = "test@example.com", bool isActive = true)
+        {
+            return new User
+            {
+                Id = Guid.NewGuid(),
+                Username = username,
+                Email = email,
+                FirstName = "Test",
+                LastName = "User",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
+                IsActive = isActive,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
         }
     }
 }

@@ -27,7 +27,7 @@ namespace TaskHub.Api.Core.Services
             ICardRepository cardRepository,
             IMapper mapper,
             ILogger<ListService> logger,
-            IUnitOfWork unitOfWork) 
+            IUnitOfWork unitOfWork)
             : base(unitOfWork)
         {
             _listRepository = listRepository ?? throw new ArgumentNullException(nameof(listRepository));
@@ -121,7 +121,7 @@ namespace TaskHub.Api.Core.Services
                 var newBoardExists = await _boardRepository.ExistsAsync(b => b.Id == updateListDto.BoardId.Value);
                 if (!newBoardExists)
                     throw new KeyNotFoundException($"Target board with ID {updateListDto.BoardId} not found.");
-                
+
                 list.BoardId = updateListDto.BoardId.Value;
                 boardChanged = true;
             }
@@ -131,7 +131,7 @@ namespace TaskHub.Api.Core.Services
 
             // Save changes
             _listRepository.Update(list);
-            
+
             // Handle reordering if position or board changed
             if (positionChanged || boardChanged)
             {
@@ -139,12 +139,12 @@ namespace TaskHub.Api.Core.Services
                 {
                     // Reorder lists in the original board
                     await _listRepository.ReorderListsAfterDeletion(originalBoardId, originalPosition);
-                    
+
                     // Get new position in the target board
                     var maxPosition = await _listRepository.GetMaxPositionAsync(list.BoardId);
                     if (list.Position > maxPosition + 1)
                         list.Position = maxPosition + 1;
-                    
+
                     // Reorder lists in the target board
                     await _listRepository.ReorderListsAfterInsertion(list.BoardId, list.Position);
                 }

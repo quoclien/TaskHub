@@ -88,7 +88,7 @@ namespace TaskHub.Api.Controllers
             {
                 var userId = Guid.Parse(User?.Identity?.Name ?? throw new UnauthorizedAccessException("User not authenticated"));
                 var user = await _authService.GetCurrentUserAsync(userId);
-                
+
                 return user == null ? NotFound() : Ok(user);
             }
             catch (UnauthorizedAccessException)
@@ -102,4 +102,4 @@ namespace TaskHub.Api.Controllers
             }
         }
     }
-} 
+}

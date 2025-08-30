@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { CheckCircle, Users, Zap, ArrowRight, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -57,11 +57,11 @@ export default function HomePage({}: HomePageProps) {
           TaskHub
         </h1>
         <p className='text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto'>
-          The modern task management platform for teams that get things done. 
-          Organize, collaborate, and track progress in real-time.
+          The modern task management platform for teams that get things done. Organize, collaborate,
+          and track progress in real-time.
         </p>
       </div>
-      
+
       <div className='flex flex-col sm:flex-row gap-4 justify-center'>
         <Button
           asChild
@@ -79,7 +79,11 @@ export default function HomePage({}: HomePageProps) {
           asChild
           className='px-8 py-3 text-lg border-gray-300 dark:border-gray-600'
         >
-          <Link href='https://github.com/taskhub-team/taskhub' target='_blank' rel='noopener noreferrer'>
+          <Link
+            href='https://github.com/taskhub-team/taskhub'
+            target='_blank'
+            rel='noopener noreferrer'
+          >
             View on GitHub
             <ExternalLink className='ml-2 h-5 w-5' />
           </Link>
@@ -99,7 +103,7 @@ export default function HomePage({}: HomePageProps) {
           Powerful features designed to help teams collaborate effectively
         </p>
       </div>
-      
+
       <div className='grid md:grid-cols-3 gap-8 max-w-5xl mx-auto'>
         {/* Board Management */}
         <div className='bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center'>
@@ -110,7 +114,8 @@ export default function HomePage({}: HomePageProps) {
             Visual Board Management
           </h3>
           <p className='text-gray-600 dark:text-gray-300'>
-            Organize tasks with intuitive Kanban boards. Drag and drop cards between lists to track progress effortlessly.
+            Organize tasks with intuitive Kanban boards. Drag and drop cards between lists to track
+            progress effortlessly.
           </p>
         </div>
 
@@ -123,7 +128,8 @@ export default function HomePage({}: HomePageProps) {
             Real-time Collaboration
           </h3>
           <p className='text-gray-600 dark:text-gray-300'>
-            See changes instantly as your team updates tasks. Stay synchronized with live updates and notifications.
+            See changes instantly as your team updates tasks. Stay synchronized with live updates
+            and notifications.
           </p>
         </div>
 
@@ -136,7 +142,8 @@ export default function HomePage({}: HomePageProps) {
             Secure Authentication
           </h3>
           <p className='text-gray-600 dark:text-gray-300'>
-            Sign in securely with Google OAuth or traditional credentials. Your data is protected and accessible only to you.
+            Sign in securely with Google OAuth or traditional credentials. Your data is protected
+            and accessible only to you.
           </p>
         </div>
       </div>
@@ -150,7 +157,8 @@ export default function HomePage({}: HomePageProps) {
         Ready to boost your productivity?
       </h2>
       <p className='text-lg text-gray-600 dark:text-gray-300 mb-8'>
-        Join thousands of teams already using TaskHub to organize their work and achieve their goals.
+        Join thousands of teams already using TaskHub to organize their work and achieve their
+        goals.
       </p>
       <Button
         asChild

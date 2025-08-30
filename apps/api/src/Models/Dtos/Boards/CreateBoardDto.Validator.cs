@@ -14,4 +14,4 @@ public class CreateBoardDtoValidator : AbstractValidator<CreateBoardDto>
             .MaximumLength(500).WithMessage("Board description must not exceed 500 characters")
             .When(x => !string.IsNullOrEmpty(x.Description));
     }
-} 
+}

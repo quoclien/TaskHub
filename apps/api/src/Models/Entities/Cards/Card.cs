@@ -14,17 +14,17 @@ namespace TaskHub.Api.Models.Entities.Cards
         public string Description { get; set; } = string.Empty;
         public Guid ListId { get; set; }
         public int Position { get; set; }
-        
+
         // Nullable properties
         public DateTime? DueDate { get; set; }
         public Guid? AssignedTo { get; set; }
-        
+
         // Boolean with default value
         public bool IsArchived { get; set; }
-        
+
         // JSONB metadata property for PostgreSQL
         public Dictionary<string, object>? Metadata { get; set; }
-        
+
         // Navigation properties
         public virtual required List List { get; set; }
     }

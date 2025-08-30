@@ -11,4 +11,4 @@ namespace TaskHub.Api.Infrastructure.Mapping
             CreateMap<User, UserDto>();
         }
     }
-} 
+}

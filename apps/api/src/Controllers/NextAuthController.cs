@@ -50,7 +50,7 @@ namespace TaskHub.Api.Controllers
 
                 // Check if user exists
                 var existingUser = await _userRepository.GetByEmailAsync(request.Email);
-                
+
                 User user;
                 if (existingUser != null)
                 {
@@ -113,7 +113,7 @@ namespace TaskHub.Api.Controllers
             try
             {
                 var user = await _userRepository.GetByIdAsync(userId);
-                
+
                 if (user == null || !user.IsActive)
                     return NotFound();
 
@@ -141,7 +141,7 @@ namespace TaskHub.Api.Controllers
                     return BadRequest("Email is required");
 
                 var user = await _userRepository.GetByEmailAsync(email);
-                
+
                 if (user == null)
                     return NotFound();
 
@@ -164,4 +164,4 @@ namespace TaskHub.Api.Controllers
         public string? Image { get; set; }
         public bool EmailVerified { get; set; }
     }
-} 
+}

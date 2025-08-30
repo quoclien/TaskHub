@@ -101,7 +101,7 @@ namespace TaskHub.Api.Controllers
             try
             {
                 var userId = Guid.Parse(User?.Identity?.Name ?? throw new UnauthorizedAccessException("User not authenticated"));
-                
+
                 await _boardService.UpdateBoardAsync(id, updateBoardDto, userId);
                 return NoContent();
             }
@@ -129,7 +129,7 @@ namespace TaskHub.Api.Controllers
             try
             {
                 var userId = Guid.Parse(User?.Identity?.Name ?? throw new UnauthorizedAccessException("User not authenticated"));
-                
+
                 await _boardService.DeleteBoardAsync(id, userId);
                 return NoContent();
             }

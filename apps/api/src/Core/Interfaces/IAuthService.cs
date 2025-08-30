@@ -10,4 +10,4 @@ namespace TaskHub.Api.Core.Interfaces
         Task<UserDto?> GetCurrentUserAsync(Guid userId);
         string GenerateJwtToken(Guid userId);
     }
-} 
+}

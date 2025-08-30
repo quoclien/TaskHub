@@ -46,7 +46,7 @@ namespace TaskHub.Api.IntegrationTests.Controllers
 
             // Assert
             response.EnsureSuccessStatusCode();
-            Assert.Equal("application/json; charset=utf-8", 
+            Assert.Equal("application/json; charset=utf-8",
                 response.Content.Headers.ContentType?.ToString());
         }
 
@@ -132,8 +132,8 @@ namespace TaskHub.Api.IntegrationTests.Controllers
                 testBoard = board;
             });
 
-            var updateBoardDto = new UpdateBoardDto 
-            { 
+            var updateBoardDto = new UpdateBoardDto
+            {
                 Title = "Updated Title",
                 IsPublic = false
             };

@@ -4,7 +4,7 @@ This directory contains scripts to streamline your development workflow by autom
 
 ## Scripts Overview
 
-### `start-dev-simple.ps1` - Main Development Startup Script ⭐
+### `start-dev.ps1` - Main Development Startup Script ⭐
 
 **Primary script for starting your development environment**
 
@@ -20,25 +20,19 @@ This directory contains scripts to streamline your development workflow by autom
 
 ```powershell
 # Start all services (recommended)
-.\start-dev-simple.ps1
+.\start-dev.ps1
 
 # Start only frontend
-.\start-dev-simple.ps1 -Frontend
+.\start-dev.ps1 -Frontend
 
 # Start only backend
-.\start-dev-simple.ps1 -Backend
-
-# Skip database migrations
-.\start-dev-simple.ps1 -SkipMigrations
-
-# Skip Docker containers (if DB already running)
-.\start-dev-simple.ps1 -SkipDocker
+.\start-dev.ps1 -Backend
 
 # Show help
-.\start-dev-simple.ps1 -Help
+.\start-dev.ps1 -Help
 ```
 
-### `stop-dev-simple.ps1` - Development Cleanup Script
+### `stop-dev.ps1` - Development Cleanup Script
 
 **Stops all development services and containers**
 
@@ -50,16 +44,10 @@ This directory contains scripts to streamline your development workflow by autom
 
 ```powershell
 # Stop all services
-.\stop-dev-simple.ps1
-
-# Stop only Docker containers
-.\stop-dev-simple.ps1 -Containers
-
-# Show only running processes
-.\stop-dev-simple.ps1 -Processes
+.\stop-dev.ps1
 
 # Show help
-.\stop-dev-simple.ps1 -Help
+.\stop-dev.ps1 -Help
 ```
 
 ## Prerequisites
@@ -87,7 +75,7 @@ Before running the scripts, ensure you have:
 
 1. **Quick Start (Recommended):**
    ```powershell
-   .\start-dev-simple.ps1
+   .\start-dev.ps1
    ```
    This will start everything you need for development.
 
@@ -110,7 +98,7 @@ Before running the scripts, ensure you have:
 
 1. **Stop all services:**
    ```powershell
-   .\stop-dev-simple.ps1
+   .\stop-dev.ps1
    ```
 
 2. **Manual shutdown:**
@@ -119,9 +107,8 @@ Before running the scripts, ensure you have:
 
 ### ⚡ Partial Restarts
 
-- **Frontend only:** `.\start-dev-simple.ps1 -Frontend`
-- **Backend only:** `.\start-dev-simple.ps1 -Backend`
-- **Skip migrations:** `.\start-dev-simple.ps1 -SkipMigrations`
+- **Frontend only:** `.\start-dev.ps1 -Frontend`
+- **Backend only:** `.\start-dev.ps1 -Backend`
 
 ## Troubleshooting
 
@@ -174,9 +161,16 @@ docker-compose down
 
 ## Script Locations
 
-- `start-dev-simple.ps1` - Main startup script
-- `stop-dev-simple.ps1` - Cleanup script  
-- `start-backend.ps1` - Legacy backend-only script
+### Core Development Scripts
+- `start-dev.ps1` - Main comprehensive startup script
+- `stop-dev.ps1` - Development environment cleanup script
+
+### Testing Scripts
+- `validate-all-tests.ps1` - Comprehensive test validation pipeline
+- `test-e2e-setup.ps1` - End-to-end testing environment setup
+
+### Utility Scripts
+- `apps/api/src/_cleanup/Remove-OldDtos.ps1` - One-time cleanup utility
 - `DEV-SCRIPTS-README.md` - This documentation
 
 ## Tips

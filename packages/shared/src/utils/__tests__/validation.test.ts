@@ -6,7 +6,7 @@ import {
   paginationSchema,
   searchQuerySchema,
   validate,
-  validateWithErrors
+  validateWithErrors,
 } from '../validation';
 
 describe('validation utilities', () => {

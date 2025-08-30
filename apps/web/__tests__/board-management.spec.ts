@@ -1,12 +1,13 @@
-import { test, expect, type Page } from '@playwright/test';
 import { faker } from '@faker-js/faker';
+import { test, expect, type Page } from '@playwright/test';
+
 import type { TestUser } from './test-utils';
 
 // Define test fixtures type
-type BoardManagementFixtures = {
+interface BoardManagementFixtures {
   authenticatedPage: Page;
   testUser: TestUser;
-};
+}
 
 // Extend the test context with our fixtures
 test.extend<BoardManagementFixtures>();
@@ -24,9 +25,7 @@ const createTestBoard = async (page: Page, title: string): Promise<string> => {
 const createTestList = async (page: Page, title: string): Promise<void> => {
   await page.getByPlaceholder('Enter list title...').fill(title);
   await page.getByRole('button', { name: /add list/i }).click();
-  await expect(
-    page.getByRole('heading', { level: 3, name: title })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { level: 3, name: title })).toBeVisible();
 };
 
 // Helper function to create a test card
@@ -43,27 +42,26 @@ test.describe('Board Management', () => {
     try {
       // Navigate to boards page
       await authenticatedPage.goto('/boards');
-      
+
       // Generate test data
       const boardTitle = `Test Board ${faker.lorem.words(2)}`;
       const boardDescription = 'Test board description';
-      
+
       // Fill in board details
       await authenticatedPage.getByRole('button', { name: /create board/i }).click();
       await authenticatedPage.getByLabel(/board title/i).fill(boardTitle);
       await authenticatedPage.getByLabel(/description/i).fill(boardDescription);
-      
+
       // Submit the form and wait for navigation
       const navigationPromise = authenticatedPage.waitForURL(/\/board\/[^\/]+$/);
       await authenticatedPage.getByRole('button', { name: /create board/i }).click();
       await navigationPromise;
-      
+
       // Verify board was created and we're redirected to the board page
-      await expect(
-        authenticatedPage,
-        'Should be redirected to the new board page'
-      ).toHaveURL(/\/board\/[^\/]+$/);
-      
+      await expect(authenticatedPage, 'Should be redirected to the new board page').toHaveURL(
+        /\/board\/[^\/]+$/
+      );
+
       await expect(
         authenticatedPage.getByRole('heading', { name: boardTitle }),
         'Board title should be visible on the page'
@@ -82,11 +80,11 @@ test.describe('Board Management', () => {
       await authenticatedPage.goto('/boards');
       const boardTitle = `Test Board ${faker.lorem.words(2)}`;
       await createTestBoard(authenticatedPage, boardTitle);
-      
+
       // Add a new list
       const listTitle = 'To Do';
       await createTestList(authenticatedPage, listTitle);
-      
+
       // Verify list was added
       await expect(
         authenticatedPage.getByRole('heading', { level: 3, name: listTitle }),
@@ -107,11 +105,11 @@ test.describe('Board Management', () => {
       const boardTitle = `Test Board ${faker.lorem.words(2)}`;
       await createTestBoard(authenticatedPage, boardTitle);
       await createTestList(authenticatedPage, 'To Do');
-      
+
       // Add a card to the list
       const cardTitle = 'Test Card';
       await createTestCard(authenticatedPage, cardTitle);
-      
+
       // Verify the card was added to the list
       await expect(
         authenticatedPage.getByText(cardTitle, { exact: true }),
@@ -131,21 +129,21 @@ test.describe('Board Management', () => {
       await authenticatedPage.goto('/boards');
       const boardTitle = `Test Board ${faker.lorem.words(2)}`;
       await createTestBoard(authenticatedPage, boardTitle);
-      
+
       // Add two lists
       await createTestList(authenticatedPage, 'To Do');
       await createTestList(authenticatedPage, 'In Progress');
-      
+
       // Add a card to the first list
       const cardTitle = 'Test Card';
       await createTestCard(authenticatedPage, cardTitle, 0);
-      
+
       // Get references to the card and target list
       const card = authenticatedPage.getByRole('button', { name: cardTitle });
       const targetList = authenticatedPage
         .getByRole('heading', { level: 3, name: 'In Progress' })
         .locator('..');
-      
+
       // Verify the card is initially in the first list
       await expect(
         authenticatedPage
@@ -154,10 +152,10 @@ test.describe('Board Management', () => {
           .getByText(cardTitle),
         'Card should be in the first list initially'
       ).toBeVisible();
-      
+
       // Drag and drop the card to the second list
       await card.dragTo(targetList);
-      
+
       // Verify the card is now in the second list
       await expect(
         targetList.getByText(cardTitle, { exact: true }),
@@ -177,31 +175,31 @@ test.describe('Board Management', () => {
       await authenticatedPage.goto('/boards');
       const boardTitle = `Test Board ${faker.lorem.words(2)}`;
       await createTestBoard(authenticatedPage, boardTitle);
-      
+
       // Add a list and a card
       await createTestList(authenticatedPage, 'To Do');
-      
+
       const cardTitle = 'Test Card';
       await createTestCard(authenticatedPage, cardTitle);
-      
+
       // Open the card for editing
       const cardElement = authenticatedPage.getByText(cardTitle, { exact: true });
       await cardElement.click();
-      
+
       // Wait for the card details modal to be visible
       const cardModal = authenticatedPage.getByRole('dialog');
       await expect(cardModal, 'Card details modal should be visible').toBeVisible();
-      
+
       // Edit the card title
       const newCardTitle = 'Updated Card Title';
       const titleInput = cardModal.getByRole('textbox', { name: /title/i });
       await expect(titleInput, 'Title input should be visible').toBeVisible();
       await titleInput.fill(newCardTitle);
-      
+
       // Save the changes
       const saveButton = cardModal.getByRole('button', { name: /save/i });
       await saveButton.click();
-      
+
       // Verify the card was updated
       await expect(
         authenticatedPage.getByText(newCardTitle, { exact: true }),

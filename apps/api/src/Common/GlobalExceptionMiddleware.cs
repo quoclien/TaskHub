@@ -69,12 +69,12 @@ public class GlobalExceptionMiddleware
         };
 
         context.Response.StatusCode = problemDetails.status;
-        
+
         var json = JsonSerializer.Serialize(problemDetails, new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         });
-        
+
         await context.Response.WriteAsync(json);
     }
-} 
+}

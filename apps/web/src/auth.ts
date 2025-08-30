@@ -1,54 +1,57 @@
-import NextAuth from "next-auth"
-import Google from "next-auth/providers/google"
-import Credentials from "next-auth/providers/credentials"
-import type { NextAuthConfig } from "next-auth"
+import NextAuth from 'next-auth';
+import type { NextAuthConfig } from 'next-auth';
+import Credentials from 'next-auth/providers/credentials';
+import Google from 'next-auth/providers/google';
 
 export const config = {
   providers: [
     Credentials({
-      name: "credentials",
+      name: 'credentials',
       credentials: {
-        emailOrUsername: { label: "Email or Username", type: "text" },
-        password: { label: "Password", type: "password" }
+        emailOrUsername: { label: 'Email or Username', type: 'text' },
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
         if (!credentials?.emailOrUsername || !credentials?.password) {
-          return null
+          return null;
         }
 
         try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5205'}/api/auth/login`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              emailOrUsername: credentials.emailOrUsername,
-              password: credentials.password,
-            }),
-          })
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5205/api'}/auth/login`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                emailOrUsername: credentials.emailOrUsername,
+                password: credentials.password,
+              }),
+            }
+          );
 
           if (!response.ok) {
-            return null
+            return null;
           }
 
-          const userData = await response.json()
-          
-          if (userData && userData.user) {
+          const userData = await response.json();
+
+          if (userData?.user) {
             return {
               id: userData.user.id,
               email: userData.user.email,
               name: userData.user.username,
               role: userData.user.role || 'User',
-            }
+            };
           }
-          
-          return null
+
+          return null;
         } catch (error) {
-          console.error('Authentication error:', error)
-          return null
+          console.error('Authentication error:', error);
+          return null;
         }
-      }
+      },
     }),
     Google({
       clientId: process.env.AUTH_GOOGLE_ID!,
@@ -56,7 +59,7 @@ export const config = {
     }),
   ],
   session: {
-    strategy: "jwt",
+    strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   cookies: {
@@ -71,28 +74,31 @@ export const config = {
     },
   },
   pages: {
-    signIn: "/sign-in",
-    error: "/error",
+    signIn: '/sign-in',
+    error: '/error',
   },
   callbacks: {
     async signIn({ user, account, profile }) {
       if (account?.provider === 'google' && user.email) {
         try {
           // Call our API to handle Google OAuth user
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5205'}/api/nextauth/google-oauth`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              sub: user.id,
-              email: user.email,
-              name: user.name,
-              image: user.image,
-              emailVerified: (user as any).emailVerified || false
-            }),
-          });
-          
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5205/api'}/nextauth/google-oauth`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                sub: user.id,
+                email: user.email,
+                name: user.name,
+                image: user.image,
+                emailVerified: (user as any).emailVerified || false,
+              }),
+            }
+          );
+
           if (response.ok) {
             const userData = await response.json();
             // Store user data in token for session
@@ -111,25 +117,25 @@ export const config = {
     },
     async session({ session, token }) {
       if (session.user && token.sub) {
-        session.user.id = token.sub
+        session.user.id = token.sub;
         // Add role to session for RBAC
         if (token.role) {
-          session.user.role = token.role as string
+          session.user.role = token.role as string;
         }
       }
-      return session
+      return session;
     },
     async jwt({ token, user, account }) {
       if (user) {
-        token.id = user.id
+        token.id = user.id;
         // Store role in token for credentials provider
         if (user.role) {
-          token.role = user.role
+          token.role = user.role;
         }
       }
-      return token
+      return token;
     },
   },
-} satisfies NextAuthConfig
+} satisfies NextAuthConfig;
 
-export const { handlers, signIn, signOut, auth } = NextAuth(config) 
+export const { handlers, signIn, signOut, auth } = NextAuth(config);

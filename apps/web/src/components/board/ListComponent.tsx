@@ -8,7 +8,6 @@ import { MoreHorizontal, Plus } from 'lucide-react';
 import { useState } from 'react';
 
 // Internal dependencies
-import { CardComponent } from './CardComponent';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -18,6 +17,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+
+import { CardComponent } from './CardComponent';
 
 // Types
 interface CardProps {

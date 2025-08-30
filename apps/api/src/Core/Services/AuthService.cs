@@ -27,7 +27,7 @@ namespace TaskHub.Api.Core.Services
             IMapper mapper,
             ILogger<AuthService> logger,
             IConfiguration configuration,
-            IUnitOfWork unitOfWork) 
+            IUnitOfWork unitOfWork)
             : base(unitOfWork)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
@@ -96,7 +96,7 @@ namespace TaskHub.Api.Core.Services
             {
                 // Find user by email or username
                 var user = await FindUserByEmailOrUsernameAsync(loginDto.EmailOrUsername);
-                
+
                 // Check if user exists and has a password hash
                 if (user == null || string.IsNullOrEmpty(user.PasswordHash) || !VerifyPassword(loginDto.Password, user.PasswordHash))
                 {
@@ -185,7 +185,7 @@ namespace TaskHub.Api.Core.Services
         {
             // Try to find by email first
             var user = await _userRepository.GetByEmailAsync(emailOrUsername);
-            
+
             // If not found by email, try by username
             if (user == null)
             {
@@ -206,7 +206,7 @@ namespace TaskHub.Api.Core.Services
         {
             if (string.IsNullOrEmpty(hash))
                 return false;
-                
+
             try
             {
                 return BCrypt.Net.BCrypt.Verify(password, hash);
@@ -224,4 +224,4 @@ namespace TaskHub.Api.Core.Services
             return DateTime.UtcNow.AddDays(expireDays);
         }
     }
-} 
+}

@@ -1,18 +1,18 @@
-import { test as base, expect, type Page, type TestType } from '@playwright/test';
 import { faker } from '@faker-js/faker';
+import { test as base, expect, type Page, type TestType } from '@playwright/test';
 
 // Define types for our test fixtures
-type TestUser = {
+interface TestUser {
   email: string;
   password: string;
   firstName: string;
   lastName: string;
-};
+}
 
-type TestFixtures = {
+interface TestFixtures {
   authenticatedPage: Page;
   testUser: TestUser;
-};
+}
 
 // Test user factory
 export const createTestUser = (): TestUser => ({
@@ -37,7 +37,7 @@ export const test = base.extend<TestFixtures>({
   authenticatedPage: async ({ page, testUser }, use) => {
     // Sign up the test user
     await page.goto('/sign-up');
-    
+
     // Fill in the sign-up form
     await page.getByLabel(/first name/i).fill(testUser.firstName);
     await page.getByLabel(/last name/i).fill(testUser.lastName);
@@ -47,10 +47,10 @@ export const test = base.extend<TestFixtures>({
 
     // Submit the form
     await page.getByRole('button', { name: /create account/i }).click();
-    
+
     // Wait for navigation to complete
     await expect(page).toHaveURL('/boards');
-    
+
     try {
       // Use the authenticated page in the test
       await use(page);

@@ -4,7 +4,7 @@ import {
   isNetworkError,
   getErrorStatusCode,
   getUserFriendlyErrorMessage,
-  logError
+  logError,
 } from '../error';
 
 describe('AppError', () => {

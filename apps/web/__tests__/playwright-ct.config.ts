@@ -1,12 +1,13 @@
-import { defineConfig, devices } from '@playwright/experimental-ct-react';
 import path from 'path';
+
+import { defineConfig, devices } from '@playwright/experimental-ct-react';
 
 /**
  * See https://playwright.dev/docs/test-components for more information
  */
 export default defineConfig({
-  testDir: './',  // Look for test files in the current directory
-  testMatch: '**/*.spec.tsx',  // Only match component test files
+  testDir: './', // Look for test files in the current directory
+  testMatch: '**/*.spec.tsx', // Only match component test files
   timeout: 10 * 1000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,

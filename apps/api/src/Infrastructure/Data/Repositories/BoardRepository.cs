@@ -53,7 +53,7 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
         {
             var boardMember = await _context.BoardMembers
                 .FirstOrDefaultAsync(bm => bm.UserId == userId && bm.BoardId == boardId);
-            
+
             return boardMember?.Role;
         }
 

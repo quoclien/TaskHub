@@ -38,34 +38,34 @@ namespace TaskHub.Api.Infrastructure.Data
             {
                 entity.ToTable("users");
                 entity.HasKey(e => e.Id);
-                
+
                 entity.Property(e => e.Id)
                     .HasColumnName("id")
                     .ValueGeneratedOnAdd();
-                
+
                 entity.Property(e => e.Username)
                     .HasColumnName("username")
                     .HasMaxLength(50)
                     .IsRequired();
-                
+
                 entity.Property(e => e.Email)
                     .HasColumnName("email")
                     .HasMaxLength(255)
                     .IsRequired();
-                
+
                 entity.Property(e => e.PasswordHash)
                     .HasColumnName("password_hash")
                     .HasMaxLength(255)
                     .IsRequired();
-                
+
                 entity.Property(e => e.FirstName)
                     .HasColumnName("first_name")
                     .HasMaxLength(50);
-                
+
                 entity.Property(e => e.LastName)
                     .HasColumnName("last_name")
                     .HasMaxLength(50);
-                
+
                 entity.Property(e => e.AvatarUrl)
                     .HasColumnName("avatar_url")
                     .HasMaxLength(500);
@@ -77,7 +77,7 @@ namespace TaskHub.Api.Infrastructure.Data
                 entity.Property(e => e.IsActive)
                     .HasColumnName("is_active")
                     .HasDefaultValue(true);
-                
+
                 entity.Property(e => e.LastLoginAt)
                     .HasColumnName("last_login_at");
 
@@ -89,7 +89,7 @@ namespace TaskHub.Api.Infrastructure.Data
 
                 entity.Property(e => e.CreatedAt)
                     .HasColumnName("created_at");
-                
+
                 entity.Property(e => e.UpdatedAt)
                     .HasColumnName("updated_at");
 
@@ -97,7 +97,7 @@ namespace TaskHub.Api.Infrastructure.Data
                 entity.HasIndex(e => e.Email)
                     .IsUnique()
                     .HasDatabaseName("ix_users_email");
-                
+
                 entity.HasIndex(e => e.Username)
                     .IsUnique()
                     .HasDatabaseName("ix_users_username");
@@ -138,35 +138,35 @@ namespace TaskHub.Api.Infrastructure.Data
             {
                 entity.ToTable("boards");
                 entity.HasKey(e => e.Id);
-                
+
                 entity.Property(e => e.Id)
                     .HasColumnName("id")
                     .ValueGeneratedOnAdd();
-                
+
                 entity.Property(e => e.Title)
                     .HasColumnName("title")
                     .HasMaxLength(100)
                     .IsRequired();
-                
+
                 entity.Property(e => e.Description)
                     .HasColumnName("description")
                     .HasMaxLength(500);
-                
+
                 entity.Property(e => e.IsPublic)
                     .HasColumnName("is_public")
                     .HasDefaultValue(false);
-                
+
                 entity.Property(e => e.IsArchived)
                     .HasColumnName("is_archived")
                     .HasDefaultValue(false);
-                
+
                 entity.Property(e => e.OwnerId)
                     .HasColumnName("owner_id")
                     .IsRequired();
-                
+
                 entity.Property(e => e.CreatedAt)
                     .HasColumnName("created_at");
-                
+
                 entity.Property(e => e.UpdatedAt)
                     .HasColumnName("updated_at");
 
@@ -179,7 +179,7 @@ namespace TaskHub.Api.Infrastructure.Data
                 // Indexes
                 entity.HasIndex(e => e.OwnerId)
                     .HasDatabaseName("ix_boards_owner_id");
-                
+
                 entity.HasIndex(e => e.IsPublic)
                     .HasDatabaseName("ix_boards_is_public");
             });
@@ -191,17 +191,17 @@ namespace TaskHub.Api.Infrastructure.Data
             {
                 entity.ToTable("board_members");
                 entity.HasKey(bm => new { bm.BoardId, bm.UserId });
-                
+
                 entity.Property(e => e.BoardId)
                     .HasColumnName("board_id");
-                
+
                 entity.Property(e => e.UserId)
                     .HasColumnName("user_id");
-                
+
                 entity.Property(e => e.Role)
                     .HasColumnName("role")
                     .IsRequired();
-                
+
                 entity.Property(e => e.JoinedAt)
                     .HasColumnName("joined_at");
 
@@ -219,7 +219,7 @@ namespace TaskHub.Api.Infrastructure.Data
                 // Indexes
                 entity.HasIndex(e => e.BoardId)
                     .HasDatabaseName("ix_board_members_board_id");
-                
+
                 entity.HasIndex(e => e.UserId)
                     .HasDatabaseName("ix_board_members_user_id");
             });
@@ -231,27 +231,27 @@ namespace TaskHub.Api.Infrastructure.Data
             {
                 entity.ToTable("lists");
                 entity.HasKey(e => e.Id);
-                
+
                 entity.Property(e => e.Id)
                     .HasColumnName("id")
                     .ValueGeneratedOnAdd();
-                
+
                 entity.Property(e => e.Title)
                     .HasColumnName("title")
                     .HasMaxLength(100)
                     .IsRequired();
-                
+
                 entity.Property(e => e.BoardId)
                     .HasColumnName("board_id")
                     .IsRequired();
-                
+
                 entity.Property(e => e.Position)
                     .HasColumnName("position")
                     .IsRequired();
-                
+
                 entity.Property(e => e.CreatedAt)
                     .HasColumnName("created_at");
-                
+
                 entity.Property(e => e.UpdatedAt)
                     .HasColumnName("updated_at");
 
@@ -264,7 +264,7 @@ namespace TaskHub.Api.Infrastructure.Data
                 // Indexes
                 entity.HasIndex(e => e.BoardId)
                     .HasDatabaseName("ix_lists_board_id");
-                
+
                 entity.HasIndex(e => new { e.BoardId, e.Position })
                     .HasDatabaseName("ix_lists_board_id_position");
             });
@@ -276,44 +276,44 @@ namespace TaskHub.Api.Infrastructure.Data
             {
                 entity.ToTable("cards");
                 entity.HasKey(e => e.Id);
-                
+
                 entity.Property(e => e.Id)
                     .HasColumnName("id")
                     .ValueGeneratedOnAdd();
-                
+
                 entity.Property(e => e.Title)
                     .HasColumnName("title")
                     .HasMaxLength(200)
                     .IsRequired();
-                
+
                 entity.Property(e => e.Description)
                     .HasColumnName("description")
                     .HasMaxLength(2000);
-                
+
                 entity.Property(e => e.ListId)
                     .HasColumnName("list_id")
                     .IsRequired();
-                
+
                 entity.Property(e => e.Position)
                     .HasColumnName("position")
                     .IsRequired();
-                
+
                 entity.Property(e => e.DueDate)
                     .HasColumnName("due_date");
-                
+
                 entity.Property(e => e.AssignedTo)
                     .HasColumnName("assigned_to");
-                
+
                 entity.Property(e => e.IsArchived)
                     .HasColumnName("is_archived")
                     .HasDefaultValue(false);
-                
+
                 entity.Property(e => e.CreatedAt)
                     .HasColumnName("created_at");
-                
+
                 entity.Property(e => e.UpdatedAt)
                     .HasColumnName("updated_at");
-                
+
                 // Configure JSONB metadata column
                 entity.Property(e => e.Metadata)
                     .HasColumnName("metadata")
@@ -328,13 +328,13 @@ namespace TaskHub.Api.Infrastructure.Data
                 // Indexes
                 entity.HasIndex(e => e.ListId)
                     .HasDatabaseName("ix_cards_list_id");
-                
+
                 entity.HasIndex(e => new { e.ListId, e.Position })
                     .HasDatabaseName("ix_cards_list_id_position");
-                
+
                 entity.HasIndex(e => e.AssignedTo)
                     .HasDatabaseName("ix_cards_assigned_to");
-                
+
                 entity.HasIndex(e => e.DueDate)
                     .HasDatabaseName("ix_cards_due_date");
             });

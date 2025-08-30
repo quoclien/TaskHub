@@ -7,10 +7,10 @@ namespace TaskHub.Api.Models.Dtos.Boards
         [Required]
         [MaxLength(100)]
         public string Title { get; set; } = string.Empty;
-        
+
         [MaxLength(500)]
         public string? Description { get; set; }
-        
+
         public bool IsPublic { get; set; } = false;
     }
 }

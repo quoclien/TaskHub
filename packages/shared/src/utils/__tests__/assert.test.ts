@@ -66,7 +66,9 @@ describe('assert utilities', () => {
   });
   it('assertUuid throws for invalid, returns uuid otherwise', () => {
     expect(() => assertUuid('not-a-uuid')).toThrow();
-    expect(assertUuid('550e8400-e29b-41d4-a716-446655440000')).toBe('550e8400-e29b-41d4-a716-446655440000');
+    expect(assertUuid('550e8400-e29b-41d4-a716-446655440000')).toBe(
+      '550e8400-e29b-41d4-a716-446655440000',
+    );
   });
   it('assertEmail throws for invalid, returns email otherwise', () => {
     expect(() => assertEmail('not@email')).toThrow();

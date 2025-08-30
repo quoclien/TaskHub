@@ -5,7 +5,7 @@ import { useCallback } from 'react';
 
 export function useAuth() {
   const { data: session, status } = useSession();
-  
+
   const login = useCallback((provider?: string) => {
     return signIn(provider || 'google', { callbackUrl: '/boards' });
   }, []);
@@ -22,4 +22,4 @@ export function useAuth() {
     login,
     logout,
   };
-} 
+}

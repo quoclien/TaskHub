@@ -17,7 +17,7 @@ namespace TaskHub.Api.Models.Entities.Users
         public UserRole Role { get; set; } = UserRole.User;
         public bool IsActive { get; set; } = true;
         public DateTime? LastLoginAt { get; set; }
-        
+
         // Navigation properties
         public virtual ICollection<Board> OwnedBoards { get; set; } = new List<Board>();
         public virtual ICollection<BoardMember> BoardMemberships { get; set; } = new List<BoardMember>();

@@ -24,4 +24,4 @@ namespace TaskHub.Api.Models.Dtos.Auth
         [MaxLength(50)]
         public string? LastName { get; set; }
     }
-} 
+}

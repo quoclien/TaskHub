@@ -31,20 +31,20 @@ namespace TaskHub.Api.IntegrationTests.Controllers
             // Arrange
             using var scope = _factory.Services.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            
+
             // Act - Query seeded users
             var adminUser = await dbContext.Users
                 .FirstOrDefaultAsync(u => u.Username == "admin");
             var demoUser = await dbContext.Users
                 .FirstOrDefaultAsync(u => u.Username == "demo");
-            
+
             // Assert - Admin user exists with correct properties
             Assert.NotNull(adminUser);
             Assert.Equal("admin@example.com", adminUser.Email);
             Assert.Equal(UserRole.Admin, adminUser.Role);
             Assert.True(adminUser.IsActive);
             Assert.NotNull(adminUser.PasswordHash);
-            
+
             // Assert - Demo user exists with correct properties  
             Assert.NotNull(demoUser);
             Assert.Equal("demo@taskhub.com", demoUser.Email);
@@ -61,15 +61,15 @@ namespace TaskHub.Api.IntegrationTests.Controllers
             // Arrange
             using var scope = _factory.Services.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            
+
             // Act - Count users (should be exactly 2 from HasData)
             var userCount = await dbContext.Users.CountAsync();
             var adminCount = await dbContext.Users.CountAsync(u => u.Username == "admin");
             var demoCount = await dbContext.Users.CountAsync(u => u.Username == "demo");
-            
+
             // Assert - Exactly 2 users total, 1 admin, 1 demo
             Assert.Equal(2, userCount);
-            Assert.Equal(1, adminCount);  
+            Assert.Equal(1, adminCount);
             Assert.Equal(1, demoCount);
         }
 
@@ -77,7 +77,7 @@ namespace TaskHub.Api.IntegrationTests.Controllers
         {
             using var scope = _factory.Services.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            
+
             // Check if admin user already exists
             var existingAdmin = await dbContext.Users.FindAsync(new object[] { "admin" });
             if (existingAdmin != null)
@@ -108,7 +108,7 @@ namespace TaskHub.Api.IntegrationTests.Controllers
             // Arrange
             await SeedAdminUserAsync();
             var client = _factory.CreateClient();
-            
+
             var loginDto = new LoginDto
             {
                 EmailOrUsername = "admin",
@@ -120,10 +120,10 @@ namespace TaskHub.Api.IntegrationTests.Controllers
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            
+
             var responseContent = await response.Content.ReadAsStringAsync();
             Assert.NotEmpty(responseContent);
-            
+
             // Verify response contains JWT token
             var authResponse = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
             Assert.NotNull(authResponse);
@@ -140,7 +140,7 @@ namespace TaskHub.Api.IntegrationTests.Controllers
             // Arrange
             await SeedAdminUserAsync();
             var client = _factory.CreateClient();
-            
+
             var loginDto = new LoginDto
             {
                 EmailOrUsername = "admin@example.com",
@@ -152,7 +152,7 @@ namespace TaskHub.Api.IntegrationTests.Controllers
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            
+
             var authResponse = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
             Assert.NotNull(authResponse);
             Assert.NotNull(authResponse.Token);
@@ -166,7 +166,7 @@ namespace TaskHub.Api.IntegrationTests.Controllers
             // Arrange
             await SeedAdminUserAsync();
             var client = _factory.CreateClient();
-            
+
             var loginDto = new LoginDto
             {
                 EmailOrUsername = "admin",
@@ -185,7 +185,7 @@ namespace TaskHub.Api.IntegrationTests.Controllers
         {
             // Arrange
             var client = _factory.CreateClient();
-            
+
             var loginDto = new LoginDto
             {
                 EmailOrUsername = "nonexistent@example.com",
@@ -199,4 +199,4 @@ namespace TaskHub.Api.IntegrationTests.Controllers
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
     }
-} 
+}

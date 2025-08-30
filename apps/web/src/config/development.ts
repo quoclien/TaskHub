@@ -5,13 +5,14 @@ export const developmentConfig = {
     baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
     developmentTokenEndpoint: '/api/Development/generate-token',
   },
-  
+
   // Development features
   features: {
     mockAuth: true, // Enable mock authentication when backend is not available
-    mockToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+    mockToken:
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
   },
-  
+
   // Development warnings and messages
   messages: {
     backendUnavailable: 'Backend is not available. Using mock authentication for development.',
@@ -27,4 +28,4 @@ export const getApiUrl = (endpoint: string): string => {
 // Helper function to check if we're in development mode
 export const isDevelopment = (): boolean => {
   return process.env.NODE_ENV === 'development';
-}; 
+};

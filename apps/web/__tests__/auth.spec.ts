@@ -1,5 +1,5 @@
-import { test, expect, type Page } from '@playwright/test';
 import { faker } from '@faker-js/faker';
+import { test, expect, type Page } from '@playwright/test';
 
 // Define test user interface for better type safety
 interface TestUser {
@@ -15,7 +15,7 @@ test.describe('Authentication Flows', () => {
     email: `testuser_${Date.now()}@example.com`,
     password: 'Test@1234!',
     firstName: 'Test',
-    lastName: 'User'
+    lastName: 'User',
   };
 
   // Helper function to navigate to sign up page
@@ -159,27 +159,27 @@ test.describe('Authentication Flows', () => {
 
       // Initially password should be hidden
       const passwordInput = page.getByLabel(/^password$/i);
-      await expect(
-        passwordInput,
-        'Password input should be hidden by default'
-      ).toHaveAttribute('type', 'password');
+      await expect(passwordInput, 'Password input should be hidden by default').toHaveAttribute(
+        'type',
+        'password'
+      );
 
       // Toggle password visibility
       const toggleButton = page
         .getByRole('button', { name: /toggle password visibility/i })
         .first();
-      
+
       await toggleButton.click();
-      
+
       // Password should be visible after toggle
-      await expect(
-        passwordInput,
-        'Password input should be visible after toggle'
-      ).toHaveAttribute('type', 'text');
+      await expect(passwordInput, 'Password input should be visible after toggle').toHaveAttribute(
+        'type',
+        'text'
+      );
 
       // Toggle back to hidden
       await toggleButton.click();
-      
+
       // Password should be hidden again
       await expect(
         passwordInput,
@@ -195,20 +195,20 @@ test.describe('Authentication Flows', () => {
     try {
       // First sign in
       await goToSignIn(page);
-      
+
       // Fill in and submit the sign-in form
       await page.getByLabel(/email or username/i).fill(testUser.email);
       await page.getByLabel(/password/i).fill(testUser.password);
-      
+
       const navigationPromise = page.waitForURL('**/boards');
       await page.getByRole('button', { name: /sign in/i }).click();
       await navigationPromise;
-      
+
       await expect(page).toHaveURL('/boards');
 
       // Try to access sign in page again
       await page.goto('/sign-in');
-      
+
       // Should be redirected back to boards
       await expect(
         page,
@@ -217,7 +217,7 @@ test.describe('Authentication Flows', () => {
 
       // Try to access sign up page as well
       await page.goto('/sign-up');
-      
+
       // Should be redirected back to boards
       await expect(
         page,

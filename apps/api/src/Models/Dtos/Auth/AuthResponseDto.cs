@@ -8,4 +8,4 @@ namespace TaskHub.Api.Models.Dtos.Auth
         public DateTime ExpiresAt { get; set; }
         public UserDto User { get; set; } = null!;
     }
-} 
+}

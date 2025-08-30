@@ -110,14 +110,11 @@ export class AppError extends Error implements ApiError {
  */
 export function isNetworkError(error: unknown): boolean {
   if (typeof error === 'object' && error !== null) {
+    const errorObj = error as Record<string, unknown>;
     const name =
-      'name' in error && typeof (error as any).name === 'string'
-        ? (error as any).name.toLowerCase()
-        : '';
+      'name' in errorObj && typeof errorObj.name === 'string' ? errorObj.name.toLowerCase() : '';
     const msg =
-      'message' in error && typeof (error as any).message === 'string'
-        ? (error as any).message
-        : '';
+      'message' in errorObj && typeof errorObj.message === 'string' ? errorObj.message : '';
     const networkSubstrings = [
       'failed to fetch',
       'network request failed',

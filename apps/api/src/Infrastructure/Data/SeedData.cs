@@ -209,4 +209,4 @@ public static class SeedData
 
         logger.LogInformation("Database seeded successfully with demo data");
     }
-} 
+}

@@ -12,14 +12,11 @@ declare global {
 }
 
 expect.extend({
-  async toBeVisibleAndContainText(
-    locator: Locator,
-    expected: string | RegExp
-  ) {
+  async toBeVisibleAndContainText(locator: Locator, expected: string | RegExp) {
     const isVisible = await locator.isVisible();
     const text = await locator.textContent();
     const pass = isVisible && text !== null && new RegExp(expected).test(text);
-    
+
     return {
       pass,
       message: () =>
@@ -32,10 +29,10 @@ expect.extend({
   async toHaveNoColorContrastViolations(page: any) {
     // This is a simplified example - in a real implementation, you would use a library like axe-core
     const issues: string[] = [];
-    
+
     // Check text contrast
     const elements = await page.$$('p, h1, h2, h3, h4, h5, h6, a, button, [role="button"]');
-    
+
     for (const element of elements) {
       const color = await element.evaluate((el: HTMLElement) => {
         const style = window.getComputedStyle(el);
@@ -45,24 +42,25 @@ expect.extend({
           text: el.textContent?.trim(),
         };
       });
-      
+
       // Skip if no text or if text is not visible
       if (!color.text || color.text.length === 0 || color.textColor === 'rgba(0, 0, 0, 0)') {
         continue;
       }
-      
+
       // This is a simplified check - in a real implementation, you would calculate the contrast ratio
       // and compare it against WCAG guidelines
       if (color.textColor === color.bgColor) {
         issues.push(`Insufficient contrast for element with text: "${color.text}"`);
       }
     }
-    
+
     return {
       pass: issues.length === 0,
-      message: () => issues.length > 0 
-        ? `Found ${issues.length} color contrast issues:\n${issues.join('\n')}`
-        : 'No color contrast issues found',
+      message: () =>
+        issues.length > 0
+          ? `Found ${issues.length} color contrast issues:\n${issues.join('\n')}`
+          : 'No color contrast issues found',
     };
   },
 

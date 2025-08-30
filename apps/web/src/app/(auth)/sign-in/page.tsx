@@ -1,17 +1,17 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { useState, useEffect, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { signIn } from 'next-auth/react';
 
 const credentialsSchema = z.object({
   emailOrUsername: z.string().min(1, 'Email or username is required'),
@@ -28,7 +28,7 @@ function SignInContent() {
   const [isCredentialsLoading, setIsCredentialsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const {
     register,
     handleSubmit,
@@ -36,7 +36,7 @@ function SignInContent() {
   } = useForm<CredentialsForm>({
     resolver: zodResolver(credentialsSchema),
   });
-  
+
   const callbackUrl = searchParams.get('callbackUrl') || '/boards';
 
   useEffect(() => {
@@ -48,7 +48,7 @@ function SignInContent() {
   const handleCredentialsSubmit = async (data: CredentialsForm) => {
     setIsCredentialsLoading(true);
     setError('');
-    
+
     try {
       const result = await signIn('credentials', {
         emailOrUsername: data.emailOrUsername,
@@ -56,7 +56,7 @@ function SignInContent() {
         callbackUrl,
         redirect: false,
       });
-      
+
       if (result?.error) {
         setError('Invalid email/username or password. Please try again.');
       } else if (result?.ok) {
@@ -73,13 +73,13 @@ function SignInContent() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     setError('');
-    
+
     try {
-      const result = await signIn('google', { 
+      const result = await signIn('google', {
         callbackUrl,
-        redirect: false 
+        redirect: false,
       });
-      
+
       if (result?.error) {
         setError('Failed to sign in with Google. Please try again.');
       }
@@ -125,9 +125,15 @@ function SignInContent() {
             )}
 
             {/* Credentials Form */}
-            <form onSubmit={handleSubmit(handleCredentialsSubmit)} className='space-y-4'>
+            <form
+              onSubmit={handleSubmit(handleCredentialsSubmit)}
+              className='space-y-4'
+            >
               <div className='space-y-2'>
-                <Label htmlFor='emailOrUsername' className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                <Label
+                  htmlFor='emailOrUsername'
+                  className='text-sm font-medium text-gray-700 dark:text-gray-300'
+                >
                   Email or Username
                 </Label>
                 <Input
@@ -147,7 +153,10 @@ function SignInContent() {
               </div>
 
               <div className='space-y-2'>
-                <Label htmlFor='password' className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                <Label
+                  htmlFor='password'
+                  className='text-sm font-medium text-gray-700 dark:text-gray-300'
+                >
                   Password
                 </Label>
                 <div className='relative'>
@@ -163,7 +172,9 @@ function SignInContent() {
                   <button
                     type='button'
                     className='absolute inset-y-0 right-0 pr-3 flex items-center'
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={() => {
+                      setShowPassword(!showPassword);
+                    }}
                   >
                     {showPassword ? (
                       <EyeOff className='h-4 w-4 text-gray-400' />
@@ -212,7 +223,7 @@ function SignInContent() {
               onClick={handleGoogleSignIn}
               disabled={isLoading || authLoading}
               className='w-full flex justify-center items-center space-x-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'
-              variant="outline"
+              variant='outline'
             >
               {isLoading ? (
                 <>
@@ -221,7 +232,10 @@ function SignInContent() {
                 </>
               ) : (
                 <>
-                  <svg className='w-5 h-5' viewBox='0 0 24 24'>
+                  <svg
+                    className='w-5 h-5'
+                    viewBox='0 0 24 24'
+                  >
                     <path
                       fill='#4285F4'
                       d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z'
@@ -243,8 +257,6 @@ function SignInContent() {
                 </>
               )}
             </Button>
-
-
           </div>
 
           <div className='text-center'>
@@ -256,15 +268,17 @@ function SignInContent() {
       </div>
     </div>
   );
-};
+}
 
 export default function SignInPage() {
   return (
-    <Suspense fallback={
-      <div className='min-h-screen flex items-center justify-center'>
-        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600'></div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className='min-h-screen flex items-center justify-center'>
+          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600'></div>
+        </div>
+      }
+    >
       <SignInContent />
     </Suspense>
   );

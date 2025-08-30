@@ -217,7 +217,7 @@ namespace TaskHub.Api.Core.Services
         }
 
         private async Task HandleCardReorderingAsync(CardEntity card, Guid originalListId, int originalPosition, bool listChanged)
-        { 
+        {
             var positionChanged = card.Position != originalPosition;
 
             if (listChanged)

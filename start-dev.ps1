@@ -108,26 +108,26 @@ function Test-Prerequisites {
 function Start-Database {
     Write-Host "Starting PostgreSQL database..." -ForegroundColor Cyan
     
-    # Start database container
-    docker-compose up -d db 2>$null
+    # Start database container using dev configuration
+    docker-compose -f docker-compose.dev.yml up -d db 2>$null
     if ($LASTEXITCODE -eq 0) {
         Write-Status "Database container started"
-        
+
         # Wait for database to be ready
         Write-Host "Waiting for database to be ready..."
         $attempts = 0
         $maxAttempts = 15
-        
+
         do {
             Start-Sleep -Seconds 2
             $attempts++
-            $dbStatus = docker-compose exec -T db pg_isready -U postgres 2>$null
-            
+            $dbStatus = docker-compose -f docker-compose.dev.yml exec -T db pg_isready -U postgres 2>$null
+
             if ($attempts -eq 8) {
                 Write-Host "Still waiting for database..." -ForegroundColor Yellow
             }
         } while ($dbStatus -notlike "*accepting connections*" -and $attempts -lt $maxAttempts)
-        
+
         if ($attempts -lt $maxAttempts) {
             Write-Status "Database is ready"
             return $true
