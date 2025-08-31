@@ -58,7 +58,7 @@ export function RenameListModal({
   onSuccess,
 }: RenameListModalProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
-  
+
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
   const setIsOpen = externalOnOpenChange || setInternalIsOpen;
   const queryClient = useQueryClient();
@@ -145,7 +145,9 @@ export function RenameListModal({
               <Button
                 type='button'
                 variant='outline'
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  setIsOpen(false);
+                }}
                 disabled={renameMutation.isPending}
               >
                 Cancel

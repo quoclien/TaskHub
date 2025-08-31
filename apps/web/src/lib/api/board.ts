@@ -3,7 +3,8 @@ import type { Board } from '@taskhub/shared';
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5205/api';
 
 // Temporary development token for testing
-const DEV_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMTk4ZmE3NS1kZTBlLTcwNjAtOGY0Ny1iN2JhNzEzMjIzZmQiLCJqdGkiOiJkYjY0NzZlNC04MjE3LTQ2ZGUtYjgwYS01YTZlNTAyMmVmYzQiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiMDE5OGZhNzUtZGUwZS03MDYwLThmNDctYjdiYTcxMzIyM2ZkIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiYWRtaW4iLCJleHAiOjE3NTkxNDA2ODUsImlzcyI6IlRhc2tIdWItRGV2IiwiYXVkIjoiVGFza0h1Yi1EZXYtVXNlcnMifQ.2K66oSO3bZZoZ7gzjk23x_tUTZPPaY1_6ikaNsrz8pk';
+const DEV_TOKEN =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMTk4ZmE3NS1kZTBlLTcwNjAtOGY0Ny1iN2JhNzEzMjIzZmQiLCJqdGkiOiJkYjY0NzZlNC04MjE3LTQ2ZGUtYjgwYS01YTZlNTAyMmVmYzQiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiMDE5OGZhNzUtZGUwZS03MDYwLThmNDctYjdiYTcxMzIyM2ZkIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiYWRtaW4iLCJleHAiOjE3NTkxNDA2ODUsImlzcyI6IlRhc2tIdWItRGV2IiwiYXVkIjoiVGFza0h1Yi1EZXYtVXNlcnMifQ.2K66oSO3bZZoZ7gzjk23x_tUTZPPaY1_6ikaNsrz8pk';
 
 // Mock data for development
 const mockBoards = [
@@ -49,7 +50,7 @@ export const fetchBoards = async () => {
   const response = await fetch(`${API_BASE}/boards`, {
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${DEV_TOKEN}`,
+      Authorization: `Bearer ${DEV_TOKEN}`,
     },
     credentials: 'include', // Include cookies for session-based auth
   });
@@ -68,7 +69,7 @@ export const createBoard = async (board: { title: string; description?: string }
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${DEV_TOKEN}`,
+      Authorization: `Bearer ${DEV_TOKEN}`,
     },
     credentials: 'include', // Include cookies for session-based auth
     body: JSON.stringify(board),
@@ -86,7 +87,7 @@ export const deleteBoard = async (boardId: string) => {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${DEV_TOKEN}`,
+      Authorization: `Bearer ${DEV_TOKEN}`,
     },
     credentials: 'include', // Include cookies for session-based auth
   });
@@ -105,7 +106,7 @@ export const createList = async (
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${DEV_TOKEN}`,
+      Authorization: `Bearer ${DEV_TOKEN}`,
     },
     credentials: 'include', // Include cookies for session-based auth
     body: JSON.stringify({ Title: title, Position: position }), // Fix: Use PascalCase for .NET API
@@ -143,22 +144,24 @@ export const createCard = async (
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${DEV_TOKEN}`, // Always use DEV_TOKEN for consistency
+        Authorization: `Bearer ${DEV_TOKEN}`, // Always use DEV_TOKEN for consistency
       },
       credentials: 'include',
       body: JSON.stringify(requestBody),
     });
 
     console.log('[CreateCard] Response status:', response.status);
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       console.error('[CreateCard] Error response:', {
         status: response.status,
         statusText: response.statusText,
-        body: errorText || 'No error body received'
+        body: errorText || 'No error body received',
       });
-      throw new Error(`Failed to create card: ${response.status} ${response.statusText}${errorText ? ` - ${errorText}` : ''}`);
+      throw new Error(
+        `Failed to create card: ${response.status} ${response.statusText}${errorText ? ` - ${errorText}` : ''}`
+      );
     }
 
     const data = await response.json();
@@ -186,13 +189,14 @@ const mockCards = [
     assignedTo: 'user-1',
     comments: [
       { content: 'Started working on this task', createdAt: new Date().toISOString() },
-      { content: 'Making good progress', createdAt: new Date().toISOString() }
+      { content: 'Making good progress', createdAt: new Date().toISOString() },
     ],
   },
   {
     id: 'card-2',
     title: 'Review design mockups',
-    description: 'Go through the latest UI/UX designs and provide feedback on the proposed interface changes',
+    description:
+      'Go through the latest UI/UX designs and provide feedback on the proposed interface changes',
     listId: 'list-1',
     position: 1,
     createdAt: new Date().toISOString(),
@@ -206,7 +210,8 @@ const mockCards = [
   {
     id: 'card-3',
     title: 'Implement authentication',
-    description: 'Set up JWT authentication flow with proper session management and refresh token handling',
+    description:
+      'Set up JWT authentication flow with proper session management and refresh token handling',
     listId: 'list-2',
     position: 0,
     createdAt: new Date().toISOString(),
@@ -215,14 +220,13 @@ const mockCards = [
     dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     isArchived: false,
     assignedTo: 'user-1',
-    comments: [
-      { content: 'Authentication endpoint created', createdAt: new Date().toISOString() }
-    ],
+    comments: [{ content: 'Authentication endpoint created', createdAt: new Date().toISOString() }],
   },
   {
     id: 'card-4',
     title: 'Project kickoff',
-    description: 'Initial project setup and planning session with all stakeholders to define goals and timeline',
+    description:
+      'Initial project setup and planning session with all stakeholders to define goals and timeline',
     listId: 'list-4',
     position: 0,
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
@@ -233,7 +237,7 @@ const mockCards = [
     assignedTo: 'user-1',
     comments: [
       { content: 'Kickoff meeting completed successfully', createdAt: new Date().toISOString() },
-      { content: 'All team members are aligned on the goals', createdAt: new Date().toISOString() }
+      { content: 'All team members are aligned on the goals', createdAt: new Date().toISOString() },
     ],
   },
 ];
@@ -244,12 +248,12 @@ export const getCardById = async (cardId: string) => {
   if (false && process.env.NODE_ENV === 'development' && !DISABLE_MOCKS) {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 300));
-    
+
     const card = mockCards.find((c) => c.id === cardId);
     if (!card) {
       throw new Error('Card not found');
     }
-    
+
     return card;
   }
 
@@ -257,7 +261,7 @@ export const getCardById = async (cardId: string) => {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${DEV_TOKEN}`,
+      Authorization: `Bearer ${DEV_TOKEN}`,
     },
     credentials: 'include', // Include cookies for session-based auth
   });
@@ -386,7 +390,7 @@ export const fetchBoardById = async (boardId: string): Promise<Board> => {
   const response = await fetch(`${API_BASE}/boards/${boardId}`, {
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${DEV_TOKEN}`,
+      Authorization: `Bearer ${DEV_TOKEN}`,
     },
     credentials: 'include', // Include cookies for session-based auth
   });
@@ -409,18 +413,21 @@ export const moveCard = async (
   newPosition: number,
   token?: string
 ) => {
-  const response = await fetch(`${API_BASE}/boards/${boardId}/lists/${currentListId}/cards/${cardId}/move`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${DEV_TOKEN}`,
-    },
-    credentials: 'include',
-    body: JSON.stringify({
-      TargetListId: newListId,
-      NewPosition: newPosition,
-    }),
-  });
+  const response = await fetch(
+    `${API_BASE}/boards/${boardId}/lists/${currentListId}/cards/${cardId}/move`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${DEV_TOKEN}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        TargetListId: newListId,
+        NewPosition: newPosition,
+      }),
+    }
+  );
 
   if (!response.ok) {
     throw new Error('Failed to move card');
@@ -443,7 +450,7 @@ export const moveList = async (
   // Temporarily disable list reordering until backend endpoint is implemented
   console.warn('List reordering is not yet implemented on the backend');
   throw new Error('List reordering is not yet implemented');
-  
+
   // TODO: Uncomment when backend endpoint is ready
   /*
   const response = await fetch(`${API_BASE}/boards/${boardId}/lists/move`, {
@@ -471,16 +478,12 @@ export const moveList = async (
 /**
  * Update a list's title
  */
-export const updateList = async (
-  boardId: string,
-  listId: string,
-  title: string
-) => {
+export const updateList = async (boardId: string, listId: string, title: string) => {
   const response = await fetch(`${API_BASE}/boards/${boardId}/lists/${listId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${DEV_TOKEN}`,
+      Authorization: `Bearer ${DEV_TOKEN}`,
     },
     credentials: 'include',
     body: JSON.stringify({
@@ -498,15 +501,12 @@ export const updateList = async (
 /**
  * Delete a list and all its cards
  */
-export const deleteList = async (
-  boardId: string,
-  listId: string
-) => {
+export const deleteList = async (boardId: string, listId: string) => {
   const response = await fetch(`${API_BASE}/boards/${boardId}/lists/${listId}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${DEV_TOKEN}`,
+      Authorization: `Bearer ${DEV_TOKEN}`,
     },
     credentials: 'include',
   });

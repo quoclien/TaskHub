@@ -43,7 +43,12 @@ interface BoardViewProps {
   children: React.ReactNode;
   isLoading?: boolean;
   className?: string;
-  onMoveCard?: (cardId: string, currentListId: string, newListId: string, newPosition: number) => void;
+  onMoveCard?: (
+    cardId: string,
+    currentListId: string,
+    newListId: string,
+    newPosition: number
+  ) => void;
   onMoveList?: (oldIndex: number, newIndex: number) => void;
 }
 
@@ -62,7 +67,8 @@ export const BoardView = forwardRef<HTMLDivElement, BoardViewProps>(
 
     // Sensors
     // Disable DnD activation when any dialog is open
-    const isDialogOpen = typeof window !== 'undefined' && document.documentElement.dataset.dialogOpen === 'true';
+    const isDialogOpen =
+      typeof window !== 'undefined' && document.documentElement.dataset.dialogOpen === 'true';
 
     const sensors = useSensors(
       useSensor(PointerSensor, {
@@ -167,13 +173,17 @@ export const BoardView = forwardRef<HTMLDivElement, BoardViewProps>(
           const overCardData = overData as CardMeta;
 
           // Only handle same-list reordering here (cross-list handled in dragOver)
-          if (activeCardData.listId === overCardData.listId && activeCardData.index !== overCardData.index) {
+          if (
+            activeCardData.listId === overCardData.listId &&
+            activeCardData.index !== overCardData.index
+          ) {
             const activeCardId = active.id as string;
             const currentListId = activeCardData.listId;
             const targetListId = overCardData.listId;
-            const newPosition = activeCardData.index < overCardData.index
-              ? overCardData.index  // Moving down
-              : overCardData.index; // Moving up
+            const newPosition =
+              activeCardData.index < overCardData.index
+                ? overCardData.index // Moving down
+                : overCardData.index; // Moving up
             onMoveCard?.(activeCardId, currentListId, targetListId, newPosition);
           }
         }
@@ -217,8 +227,8 @@ export const BoardView = forwardRef<HTMLDivElement, BoardViewProps>(
       if (!activeCard) return null;
 
       return (
-        <div className="rotate-3 opacity-90">
-          <div className="p-3 bg-white rounded-md shadow-lg border border-gray-200">
+        <div className='rotate-3 opacity-90'>
+          <div className='p-3 bg-white rounded-md shadow-lg border border-gray-200'>
             <div>
               {/* Labels */}
               {activeCard.labels && activeCard.labels.length > 0 && (
@@ -296,9 +306,7 @@ export const BoardView = forwardRef<HTMLDivElement, BoardViewProps>(
           {renderContent()}
         </div>
 
-        <DragOverlay>
-          {activeId && activeCard ? renderDragOverlay() : null}
-        </DragOverlay>
+        <DragOverlay>{activeId && activeCard ? renderDragOverlay() : null}</DragOverlay>
       </DndContext>
     );
   }

@@ -3,6 +3,7 @@
 import { ChevronRight, Home } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, usePathname } from 'next/navigation';
+
 import { useBoard } from '@/hooks/useBoard';
 
 // Types
@@ -20,7 +21,7 @@ interface BreadcrumbsProps {
 export const Breadcrumbs = ({ items }: BreadcrumbsProps) => {
   const params = useParams();
   const pathname = usePathname();
-  
+
   // Get board data if we're on a board page
   const boardId = typeof params.boardId === 'string' ? params.boardId : undefined;
   const { data: board } = useBoard(boardId);
@@ -70,10 +71,13 @@ export const Breadcrumbs = ({ items }: BreadcrumbsProps) => {
         const paramValue = params[paramKey];
         if (paramValue) {
           // Use board title if available, otherwise fall back to 'Board'
-          const label = paramKey === 'boardId' && board?.title 
-            ? board.title 
-            : typeof paramValue === 'string' ? paramValue : 'Board';
-          
+          const label =
+            paramKey === 'boardId' && board?.title
+              ? board.title
+              : typeof paramValue === 'string'
+                ? paramValue
+                : 'Board';
+
           breadcrumbs.push({
             label,
             href: index === segments.length - 1 ? undefined : currentPath,

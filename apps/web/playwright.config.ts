@@ -43,7 +43,7 @@ export default defineConfig({
     },
     {
       name: 'chromium-critical',
-      use: { 
+      use: {
         ...devices['Desktop Chrome'],
         // Increase timeout for critical path tests
         actionTimeout: 15000,

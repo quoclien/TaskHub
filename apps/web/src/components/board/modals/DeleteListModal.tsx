@@ -36,7 +36,7 @@ export function DeleteListModal({
   onSuccess,
 }: DeleteListModalProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
-  
+
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
   const setIsOpen = externalOnOpenChange || setInternalIsOpen;
   const queryClient = useQueryClient();
@@ -72,8 +72,8 @@ export function DeleteListModal({
         <DialogHeader>
           <DialogTitle>Delete List</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete &quot;{listTitle}&quot;? This will permanently remove the list
-            and all its cards. This action cannot be undone.
+            Are you sure you want to delete &quot;{listTitle}&quot;? This will permanently remove
+            the list and all its cards. This action cannot be undone.
           </DialogDescription>
         </DialogHeader>
 
@@ -81,7 +81,9 @@ export function DeleteListModal({
           <Button
             type='button'
             variant='outline'
-            onClick={() => setIsOpen(false)}
+            onClick={() => {
+              setIsOpen(false);
+            }}
             disabled={deleteMutation.isPending}
           >
             Cancel

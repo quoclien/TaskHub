@@ -132,13 +132,20 @@ export function BoardComponentsShowcase() {
     setIsLoading(!isLoading);
   };
 
-  const handleMoveCard = (cardId: string, currentListId: string, newListId: string, newPosition: number) => {
+  const handleMoveCard = (
+    cardId: string,
+    currentListId: string,
+    newListId: string,
+    newPosition: number
+  ) => {
     setLists((prevLists) => {
       // Find the source list and card
       const sourceListIndex = prevLists.findIndex((list) => list.id === currentListId);
       if (sourceListIndex === -1) return prevLists;
 
-      const sourceCardIndex = prevLists[sourceListIndex].cards.findIndex((card) => card.id === cardId);
+      const sourceCardIndex = prevLists[sourceListIndex].cards.findIndex(
+        (card) => card.id === cardId
+      );
       if (sourceCardIndex === -1) return prevLists;
 
       const cardToMove = prevLists[sourceListIndex].cards[sourceCardIndex];

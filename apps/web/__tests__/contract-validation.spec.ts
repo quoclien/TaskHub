@@ -3,7 +3,7 @@ import type { Board, List as TaskList, Card } from '@taskhub/shared';
 
 /**
  * Contract Validation Tests
- * 
+ *
  * These tests validate that frontend and backend maintain API contract compatibility.
  * Tests cover data shapes, status codes, error formats, and type safety.
  */
@@ -18,8 +18,8 @@ test.describe('API Contract Validation', () => {
     const loginResponse = await request.post(`${API_BASE}/auth/login`, {
       data: {
         usernameOrEmail: 'admin',
-        password: 'admin'
-      }
+        password: 'admin',
+      },
     });
 
     expect(loginResponse.ok()).toBeTruthy();
@@ -34,8 +34,8 @@ test.describe('API Contract Validation', () => {
       headers: { Authorization: `Bearer ${authToken}` },
       data: {
         title: 'Contract Test Board',
-        description: 'Testing API contract compliance'
-      }
+        description: 'Testing API contract compliance',
+      },
     });
 
     expect(createBoardResponse.ok()).toBeTruthy();
@@ -59,7 +59,7 @@ test.describe('API Contract Validation', () => {
 
     // Get board via API
     const getBoardResponse = await request.get(`${API_BASE}/boards/${createdBoard.id}`, {
-      headers: { Authorization: `Bearer ${authToken}` }
+      headers: { Authorization: `Bearer ${authToken}` },
     });
 
     expect(getBoardResponse.ok()).toBeTruthy();
@@ -81,8 +81,8 @@ test.describe('API Contract Validation', () => {
       headers: { Authorization: `Bearer ${authToken}` },
       data: {
         title: 'List Contract Test Board',
-        description: 'For testing list contracts'
-      }
+        description: 'For testing list contracts',
+      },
     });
 
     const board = await boardResponse.json();
@@ -93,8 +93,8 @@ test.describe('API Contract Validation', () => {
       data: {
         title: 'Contract Test List',
         boardId: board.id,
-        position: 1
-      }
+        position: 1,
+      },
     });
 
     expect(createListResponse.ok()).toBeTruthy();
@@ -128,8 +128,8 @@ test.describe('API Contract Validation', () => {
       headers: { Authorization: `Bearer ${authToken}` },
       data: {
         title: 'Card Contract Test Board',
-        description: 'For testing card contracts'
-      }
+        description: 'For testing card contracts',
+      },
     });
 
     const board = await boardResponse.json();
@@ -139,8 +139,8 @@ test.describe('API Contract Validation', () => {
       data: {
         title: 'Card Contract Test List',
         boardId: board.id,
-        position: 1
-      }
+        position: 1,
+      },
     });
 
     const list = await listResponse.json();
@@ -157,14 +157,14 @@ test.describe('API Contract Validation', () => {
         estimatedHours: 8.5,
         customFields: {
           businessValue: 100,
-          complexity: 'medium'
-        }
-      }
+          complexity: 'medium',
+        },
+      },
     };
 
     const createCardResponse = await request.post(`${API_BASE}/cards`, {
       headers: { Authorization: `Bearer ${authToken}` },
-      data: cardData
+      data: cardData,
     });
 
     expect(createCardResponse.ok()).toBeTruthy();
@@ -203,9 +203,12 @@ test.describe('API Contract Validation', () => {
     expect(unauthorizedResponse.status()).toBe(401);
 
     // Test not found
-    const notFoundResponse = await request.get(`${API_BASE}/boards/00000000-0000-0000-0000-000000000000`, {
-      headers: { Authorization: `Bearer ${authToken}` }
-    });
+    const notFoundResponse = await request.get(
+      `${API_BASE}/boards/00000000-0000-0000-0000-000000000000`,
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      }
+    );
     expect(notFoundResponse.status()).toBe(404);
 
     // Test validation error
@@ -213,8 +216,8 @@ test.describe('API Contract Validation', () => {
       headers: { Authorization: `Bearer ${authToken}` },
       data: {
         title: '', // Invalid empty title
-        description: 'Test'
-      }
+        description: 'Test',
+      },
     });
     expect(validationErrorResponse.status()).toBe(400);
 
@@ -227,7 +230,7 @@ test.describe('API Contract Validation', () => {
   test('Pagination format is consistent', async ({ request }) => {
     // Get boards with pagination
     const paginatedResponse = await request.get(`${API_BASE}/boards?page=1&pageSize=5`, {
-      headers: { Authorization: `Bearer ${authToken}` }
+      headers: { Authorization: `Bearer ${authToken}` },
     });
 
     expect(paginatedResponse.ok()).toBeTruthy();
@@ -256,8 +259,8 @@ test.describe('API Contract Validation', () => {
       headers: { Authorization: `Bearer ${authToken}` },
       data: {
         title: 'Date Format Test Board',
-        description: 'Testing date format compliance'
-      }
+        description: 'Testing date format compliance',
+      },
     });
 
     const board = await boardResponse.json();
@@ -279,7 +282,7 @@ test.describe('API Contract Validation', () => {
 
   test('API versioning headers are present', async ({ request }) => {
     const response = await request.get(`${API_BASE}/boards`, {
-      headers: { Authorization: `Bearer ${authToken}` }
+      headers: { Authorization: `Bearer ${authToken}` },
     });
 
     expect(response.ok()).toBeTruthy();
@@ -296,8 +299,8 @@ test.describe('API Contract Validation', () => {
       headers: { Authorization: `Bearer ${authToken}` },
       data: {
         title: 'JSONB Test Board',
-        description: 'Testing JSONB metadata preservation'
-      }
+        description: 'Testing JSONB metadata preservation',
+      },
     });
 
     const board = await boardResponse.json();
@@ -307,8 +310,8 @@ test.describe('API Contract Validation', () => {
       data: {
         title: 'JSONB Test List',
         boardId: board.id,
-        position: 1
-      }
+        position: 1,
+      },
     });
 
     const list = await listResponse.json();
@@ -323,11 +326,11 @@ test.describe('API Contract Validation', () => {
       objectValue: {
         nested: {
           deeply: {
-            value: 'deep nesting test'
-          }
-        }
+            value: 'deep nesting test',
+          },
+        },
       },
-      nullValue: null
+      nullValue: null,
     };
 
     const cardResponse = await request.post(`${API_BASE}/cards`, {
@@ -337,8 +340,8 @@ test.describe('API Contract Validation', () => {
         description: 'Testing JSONB type preservation',
         listId: list.id,
         position: 1,
-        metadata: complexMetadata
-      }
+        metadata: complexMetadata,
+      },
     });
 
     expect(cardResponse.ok()).toBeTruthy();
@@ -346,7 +349,7 @@ test.describe('API Contract Validation', () => {
 
     // Retrieve card and verify metadata types are preserved
     const retrieveResponse = await request.get(`${API_BASE}/cards/${card.id}`, {
-      headers: { Authorization: `Bearer ${authToken}` }
+      headers: { Authorization: `Bearer ${authToken}` },
     });
 
     const retrievedCard = await retrieveResponse.json();
@@ -355,23 +358,22 @@ test.describe('API Contract Validation', () => {
     // Verify type preservation
     expect(typeof metadata.stringValue).toBe('string');
     expect(metadata.stringValue).toBe('test string');
-    
+
     expect(typeof metadata.numberValue).toBe('number');
     expect(metadata.numberValue).toBe(42);
-    
+
     expect(typeof metadata.floatValue).toBe('number');
     expect(metadata.floatValue).toBeCloseTo(3.14159);
-    
+
     expect(typeof metadata.booleanValue).toBe('boolean');
     expect(metadata.booleanValue).toBe(true);
-    
+
     expect(Array.isArray(metadata.arrayValue)).toBeTruthy();
     expect(metadata.arrayValue).toEqual([1, 2, 3, 'four', true]);
-    
+
     expect(typeof metadata.objectValue).toBe('object');
     expect(metadata.objectValue.nested.deeply.value).toBe('deep nesting test');
-    
+
     expect(metadata.nullValue).toBeNull();
   });
 });
-

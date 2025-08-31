@@ -1,7 +1,8 @@
-import { ReactElement } from 'react';
-import { render, RenderOptions } from '@testing-library/react';
-import { SessionProvider } from 'next-auth/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { RenderOptions } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import { SessionProvider } from 'next-auth/react';
+import type { ReactElement } from 'react';
 import { vi } from 'vitest';
 
 // Mock session data
@@ -37,9 +38,7 @@ const TestProviders = ({ children, session = null }: TestProvidersProps) => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SessionProvider session={session}>
-        {children}
-      </SessionProvider>
+      <SessionProvider session={session}>{children}</SessionProvider>
     </QueryClientProvider>
   );
 };
@@ -52,11 +51,9 @@ const customRender = (
   }
 ) => {
   const { session, ...renderOptions } = options || {};
-  
+
   return render(ui, {
-    wrapper: ({ children }) => (
-      <TestProviders session={session}>{children}</TestProviders>
-    ),
+    wrapper: ({ children }) => <TestProviders session={session}>{children}</TestProviders>,
     ...renderOptions,
   });
 };

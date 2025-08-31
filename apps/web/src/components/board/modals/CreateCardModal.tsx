@@ -30,8 +30,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { createCard } from '@/lib/api/board';
 import { useAuthStore } from '@/hooks/useAuthStore';
+import { createCard } from '@/lib/api/board';
 
 // Types and Schema
 const CreateCardSchema = z.object({
@@ -95,17 +95,11 @@ export function CreateCardModal({
         title: data.title,
         position: cardCount,
         hasDescription: !!data.description,
-        hasToken: !!token
+        hasToken: !!token,
       });
-      
+
       try {
-        const result = await createCard(
-          boardId,
-          listId,
-          data.title,
-          cardCount,
-          data.description
-        );
+        const result = await createCard(boardId, listId, data.title, cardCount, data.description);
         console.log('[CreateCardModal] Card created successfully:', result);
         return result;
       } catch (error) {
@@ -115,7 +109,7 @@ export function CreateCardModal({
     },
     onSuccess: (data) => {
       console.log('[CreateCardModal] Mutation succeeded:', data);
-      
+
       // Invalidate board query to refresh the cards
       queryClient.invalidateQueries({ queryKey: ['board', boardId] });
       console.log('[CreateCardModal] Invalidated board query:', boardId);
@@ -134,7 +128,7 @@ export function CreateCardModal({
       console.error('[CreateCardModal] Mutation error:', {
         message: error.message,
         stack: error.stack,
-        formData: form.getValues()
+        formData: form.getValues(),
       });
       toast.error(`Failed to create card: ${error.message}`);
     },

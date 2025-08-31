@@ -103,7 +103,12 @@ const BoardIdPage = () => {
   });
 
   // Event Handlers
-  const handleMoveCard = (cardId: string, currentListId: string, newListId: string, newPosition: number) => {
+  const handleMoveCard = (
+    cardId: string,
+    currentListId: string,
+    newListId: string,
+    newPosition: number
+  ) => {
     moveCardMutation.mutate({ cardId, currentListId, newListId, newPosition });
   };
 

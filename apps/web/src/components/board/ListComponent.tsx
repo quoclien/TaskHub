@@ -126,7 +126,7 @@ export function ListComponent({
           >
             Rename list
           </DropdownMenuItem>
-          
+
           <DropdownMenuItem
             onSelect={(e) => {
               e.preventDefault();
@@ -139,7 +139,7 @@ export function ListComponent({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      
+
       <RenameListModal
         boardId={boardId}
         listId={id}
@@ -150,7 +150,7 @@ export function ListComponent({
           setIsRenameModalOpen(false);
         }}
       />
-      
+
       <DeleteListModal
         boardId={boardId}
         listId={id}

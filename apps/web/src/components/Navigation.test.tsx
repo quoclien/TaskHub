@@ -2,9 +2,10 @@ import { screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 
-import { render, mockUseAuth } from '@/test-utils';
-import { Navigation } from './Navigation';
 import { useAuthStore } from '@/hooks/useAuthStore';
+import { render, mockUseAuth } from '@/test-utils';
+
+import { Navigation } from './Navigation';
 
 // Mock next/navigation
 const mockPush = vi.fn();
@@ -19,7 +20,7 @@ vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn(),
 }));
 
-// Mock useAuthStore hook  
+// Mock useAuthStore hook
 vi.mock('@/hooks/useAuthStore', () => ({
   useAuthStore: vi.fn(),
 }));
