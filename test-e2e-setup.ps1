@@ -177,7 +177,7 @@ function Start-TestEnvironment {
             Start-Sleep -Seconds 3
             $attempts++
             try {
-                $response = Invoke-WebRequest -Uri "http://localhost:5000/health" -TimeoutSec 5 -ErrorAction SilentlyContinue
+                $response = Invoke-WebRequest -Uri "http://localhost:5205/health" -TimeoutSec 5 -ErrorAction SilentlyContinue
                 if ($response.StatusCode -eq 200) {
                     $apiReady = $true
                     Write-Status "API is ready"
@@ -222,7 +222,7 @@ function Run-E2ETests {
 
     # Set environment for E2E tests
     $env:NEXT_PUBLIC_DISABLE_MOCKS = "true"
-    $env:NEXT_PUBLIC_API_URL = "http://localhost:5000"
+    $env:NEXT_PUBLIC_API_URL = "http://localhost:5205"
 
     # Run Playwright tests
     Push-Location "apps\web"

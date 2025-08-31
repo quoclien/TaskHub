@@ -2,7 +2,7 @@
 export const developmentConfig = {
   // API endpoints for development
   api: {
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5205',
     developmentTokenEndpoint: '/api/Development/generate-token',
   },
 

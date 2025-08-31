@@ -31,6 +31,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { useAuthStore } from '@/hooks/useAuthStore';
 
+// API Configuration
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5205/api';
+
 // Types and Schema
 const CreateBoardSchema = z.object({
   title: z
@@ -76,7 +79,7 @@ export function CreateBoardModal({ children, onSuccess }: CreateBoardModalProps)
         throw new Error('Not authenticated');
       }
 
-      const response = await fetch('http://localhost:5204/api/Boards', {
+      const response = await fetch(`${API_BASE}/Boards`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,

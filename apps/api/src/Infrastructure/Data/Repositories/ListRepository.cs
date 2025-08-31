@@ -33,11 +33,14 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
 
         public async Task<int> GetMaxPositionAsync(Guid boardId)
         {
-            return await _context.Lists
+            // EF Core 9 translation can fail with DefaultIfEmpty(0) on projected sequences.
+            // Materialize then compute max safely to avoid provider translation issues.
+            var positions = await _context.Lists
                 .Where(l => l.BoardId == boardId)
                 .Select(l => l.Position)
-                .DefaultIfEmpty(0)
-                .MaxAsync();
+                .ToListAsync();
+
+            return positions.Count == 0 ? 0 : positions.Max();
         }
 
         public async Task ReorderListsAsync(Guid boardId, int fromPosition, int toPosition)

@@ -68,11 +68,38 @@ function DialogContent({
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean;
 }) {
+  const contentRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    // Mark dialog as open and capture events to prevent background DnD/keyboard handling
+    const rootEl = document.documentElement;
+    rootEl.dataset.dialogOpen = 'true';
+
+    const stopIfInsideDialog = (event: Event) => {
+      const target = event.target as Node | null;
+      if (contentRef.current && target && contentRef.current.contains(target)) {
+        // Allow the dialog content to receive the event but stop it from reaching global listeners (e.g., DnD sensors)
+        event.stopPropagation();
+      }
+    };
+
+    // Capture pointer and keyboard events before they bubble to window-level sensors
+    window.addEventListener('pointerdown', stopIfInsideDialog, true);
+    window.addEventListener('keydown', stopIfInsideDialog, true);
+
+    return () => {
+      delete rootEl.dataset.dialogOpen;
+      window.removeEventListener('pointerdown', stopIfInsideDialog, true);
+      window.removeEventListener('keydown', stopIfInsideDialog, true);
+    };
+  }, []);
+
   return (
     <DialogPortal data-slot='dialog-portal'>
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot='dialog-content'
+        ref={contentRef}
         className={cn(
           'fixed left-[50%] top-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg duration-200 sm:max-w-lg',
           'data-[state=open]:animate-in data-[state=closed]:animate-out',

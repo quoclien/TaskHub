@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using TaskHub.Api.Models.Entities;
 using TaskHub.Api.Models.Entities.Boards;
 using TaskHub.Api.Models.Entities.Cards;
@@ -317,7 +318,11 @@ namespace TaskHub.Api.Infrastructure.Data
                 // Configure JSONB metadata column
                 entity.Property(e => e.Metadata)
                     .HasColumnName("metadata")
-                    .HasColumnType("jsonb");
+                    .HasColumnType("jsonb")
+                    .HasDefaultValueSql("'{}'::jsonb")
+                    .HasConversion(
+                        v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions)null),
+                        v => System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(v, (System.Text.Json.JsonSerializerOptions)null));
 
                 // Relationships
                 entity.HasOne(c => c.List)

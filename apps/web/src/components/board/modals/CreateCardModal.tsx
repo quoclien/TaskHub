@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { createCard } from '@/lib/api/board';
 import { useAuthStore } from '@/hooks/useAuthStore';
 
 // Types and Schema
@@ -73,8 +74,8 @@ export function CreateCardModal({
   const [isOpen, setIsOpen] = useState(false);
 
   // Hooks
-  const { token } = useAuthStore();
   const queryClient = useQueryClient();
+  const { token } = useAuthStore();
 
   // Form
   const form = useForm<CreateCardFormData>({
@@ -88,35 +89,36 @@ export function CreateCardModal({
   // Mutations
   const createCardMutation = useMutation({
     mutationFn: async (data: CreateCardFormData) => {
-      if (!token) {
-        throw new Error('Not authenticated');
+      console.log('[CreateCardModal] Attempting to create card:', {
+        boardId,
+        listId,
+        title: data.title,
+        position: cardCount,
+        hasDescription: !!data.description,
+        hasToken: !!token
+      });
+      
+      try {
+        const result = await createCard(
+          boardId,
+          listId,
+          data.title,
+          cardCount,
+          data.description
+        );
+        console.log('[CreateCardModal] Card created successfully:', result);
+        return result;
+      } catch (error) {
+        console.error('[CreateCardModal] Card creation failed:', error);
+        throw error;
       }
-
-      const response = await fetch(
-        `http://localhost:5204/api/boards/${boardId}/lists/${listId}/cards`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            title: data.title,
-            description: data.description,
-            position: cardCount,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to create card');
-      }
-
-      return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('[CreateCardModal] Mutation succeeded:', data);
+      
       // Invalidate board query to refresh the cards
       queryClient.invalidateQueries({ queryKey: ['board', boardId] });
+      console.log('[CreateCardModal] Invalidated board query:', boardId);
 
       // Reset form and close modal
       form.reset();
@@ -128,9 +130,13 @@ export function CreateCardModal({
       // Call optional success callback
       onSuccess?.();
     },
-    onError: (error) => {
-      toast.error('Failed to create card');
-      console.error('Failed to create card:', error);
+    onError: (error: Error) => {
+      console.error('[CreateCardModal] Mutation error:', {
+        message: error.message,
+        stack: error.stack,
+        formData: form.getValues()
+      });
+      toast.error(`Failed to create card: ${error.message}`);
     },
   });
 

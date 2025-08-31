@@ -4,11 +4,13 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { MoreHorizontal, Plus } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
 
 // Internal dependencies
-
+import { CreateCardModal } from '@/components/board/modals/CreateCardModal';
+import { DeleteListModal } from '@/components/board/modals/DeleteListModal';
+import { RenameListModal } from '@/components/board/modals/RenameListModal';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -70,6 +72,8 @@ export function ListComponent({
 }: ListComponentProps) {
   // State
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   // DnD Hooks
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -86,18 +90,8 @@ export function ListComponent({
   };
 
   // Event Handlers
-  const handleRename = () => {
-    onRename?.(id);
+  const handleMenuClose = () => {
     setIsMenuOpen(false);
-  };
-
-  const handleDelete = () => {
-    onDelete?.(id);
-    setIsMenuOpen(false);
-  };
-
-  const handleAddCard = () => {
-    onAddCard?.(id);
   };
 
   // Render Helpers
@@ -123,15 +117,50 @@ export function ListComponent({
           align='end'
           className='w-40'
         >
-          <DropdownMenuItem onClick={handleRename}>Rename list</DropdownMenuItem>
           <DropdownMenuItem
-            onClick={handleDelete}
+            onSelect={(e) => {
+              e.preventDefault();
+              setIsRenameModalOpen(true);
+              setIsMenuOpen(false);
+            }}
+          >
+            Rename list
+          </DropdownMenuItem>
+          
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault();
+              setIsDeleteModalOpen(true);
+              setIsMenuOpen(false);
+            }}
             className='text-destructive focus:text-destructive'
           >
             Delete list
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      
+      <RenameListModal
+        boardId={boardId}
+        listId={id}
+        currentTitle={title}
+        isOpen={isRenameModalOpen}
+        onOpenChange={setIsRenameModalOpen}
+        onSuccess={() => {
+          setIsRenameModalOpen(false);
+        }}
+      />
+      
+      <DeleteListModal
+        boardId={boardId}
+        listId={id}
+        listTitle={title}
+        isOpen={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        onSuccess={() => {
+          setIsDeleteModalOpen(false);
+        }}
+      />
     </div>
   );
 
@@ -167,15 +196,19 @@ export function ListComponent({
   };
 
   const renderAddCardButton = () => (
-    <Button
-      variant='ghost'
-      onClick={handleAddCard}
-      className='w-full justify-start text-gray-600 hover:text-gray-800 hover:bg-gray-100/50'
-      aria-label={`Add card to ${title} list`}
+    <CreateCardModal
+      listId={id}
+      boardId={boardId}
+      cardCount={cards.length}
     >
-      <Plus className='h-4 w-4 mr-2' />
-      Add a card
-    </Button>
+      <Button
+        variant='ghost'
+        className='w-full justify-start text-gray-600 hover:text-gray-800 hover:bg-gray-100/50'
+        aria-label={`Add card to ${title} list`}
+      >
+        + Add a card
+      </Button>
+    </CreateCardModal>
   );
 
   // Main Component

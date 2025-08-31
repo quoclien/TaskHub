@@ -33,33 +33,33 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
 
         public async Task<int> GetMaxPositionAsync(Guid listId)
         {
-            return await _context.Cards
+            var positions = await _context.Cards
                 .Where(c => c.ListId == listId)
                 .Select(c => c.Position)
-                .DefaultIfEmpty(0)
-                .MaxAsync();
+                .ToListAsync(); // Materialize the query before Max()
+
+            return positions.DefaultIfEmpty(0).Max();
         }
 
         public async Task ReorderCardsAsync(Guid listId, int fromPosition, int toPosition)
         {
+            // Don't include cards at the target position since the moved card is already there
             var cardsToUpdate = await _context.Cards
-                .Where(c => c.ListId == listId &&
-                            (c.Position >= fromPosition && c.Position <= toPosition ||
-                             c.Position <= fromPosition && c.Position >= toPosition))
+                .Where(c => c.ListId == listId && c.Position != toPosition &&
+                            ((fromPosition < toPosition && c.Position > fromPosition && c.Position <= toPosition) ||
+                             (fromPosition > toPosition && c.Position >= toPosition && c.Position < fromPosition)))
                 .ToListAsync();
 
             foreach (var card in cardsToUpdate)
             {
-                if (card.Position == fromPosition)
+                if (fromPosition < toPosition)
                 {
-                    card.Position = toPosition;
-                }
-                else if (fromPosition < toPosition)
-                {
+                    // Moving down: shift cards between fromPosition and toPosition down by 1
                     card.Position--;
                 }
                 else
                 {
+                    // Moving up: shift cards between toPosition and fromPosition up by 1
                     card.Position++;
                 }
             }
@@ -80,7 +80,7 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
         public async Task ReorderCardsAfterInsertion(Guid listId, int insertedPosition)
         {
             var cardsToUpdate = await _context.Cards
-                .Where(c => c.ListId == listId && c.Position >= insertedPosition)
+                .Where(c => c.ListId == listId && c.Position > insertedPosition)
                 .ToListAsync();
 
             foreach (var card in cardsToUpdate)

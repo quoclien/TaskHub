@@ -85,13 +85,13 @@ Before running the scripts, ensure you have:
    - Apply any pending database migrations
    - Install/update dependencies
    - Open 2 new terminal windows:
-     - Backend API server (http://localhost:5000)
+     - Backend API server (http://localhost:5205)
      - Frontend dev server (http://localhost:3000)
 
 3. **Access your application:**
    - **Frontend:** http://localhost:3000
-   - **Backend API:** http://localhost:5000  
-   - **API Documentation:** http://localhost:5000/swagger
+   - **Backend API:** http://localhost:5205  
+   - **API Documentation:** http://localhost:5205/swagger
    - **Database:** localhost:5432 (postgres/postgres)
 
 ### 🛑 Stopping Development
@@ -125,7 +125,7 @@ Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 - Re-run the script
 
 **Port conflicts:**
-- Check if ports 3000, 5000, or 5432 are in use
+- Check if ports 3000, 5205, or 5432 are in use
 - Stop other applications using these ports
 - Or modify the configuration
 

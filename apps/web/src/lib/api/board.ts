@@ -2,6 +2,9 @@ import type { Board } from '@taskhub/shared';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5205/api';
 
+// Temporary development token for testing
+const DEV_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMTk4ZmE3NS1kZTBlLTcwNjAtOGY0Ny1iN2JhNzEzMjIzZmQiLCJqdGkiOiJkYjY0NzZlNC04MjE3LTQ2ZGUtYjgwYS01YTZlNTAyMmVmYzQiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiMDE5OGZhNzUtZGUwZS03MDYwLThmNDctYjdiYTcxMzIyM2ZkIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiYWRtaW4iLCJleHAiOjE3NTkxNDA2ODUsImlzcyI6IlRhc2tIdWItRGV2IiwiYXVkIjoiVGFza0h1Yi1EZXYtVXNlcnMifQ.2K66oSO3bZZoZ7gzjk23x_tUTZPPaY1_6ikaNsrz8pk';
+
 // Mock data for development
 const mockBoards = [
   {
@@ -37,7 +40,7 @@ const mockBoards = [
 export const fetchBoards = async () => {
   // For development, return mock data unless explicitly disabled for E2E testing
   const DISABLE_MOCKS = process.env.NEXT_PUBLIC_DISABLE_MOCKS === 'true';
-  if (process.env.NODE_ENV === 'development' && !DISABLE_MOCKS) {
+  if (false && process.env.NODE_ENV === 'development' && !DISABLE_MOCKS) {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 500));
     return mockBoards;
@@ -46,6 +49,7 @@ export const fetchBoards = async () => {
   const response = await fetch(`${API_BASE}/boards`, {
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${DEV_TOKEN}`,
     },
     credentials: 'include', // Include cookies for session-based auth
   });
@@ -64,6 +68,7 @@ export const createBoard = async (board: { title: string; description?: string }
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${DEV_TOKEN}`,
     },
     credentials: 'include', // Include cookies for session-based auth
     body: JSON.stringify(board),
@@ -81,6 +86,7 @@ export const deleteBoard = async (boardId: string) => {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${DEV_TOKEN}`,
     },
     credentials: 'include', // Include cookies for session-based auth
   });
@@ -99,12 +105,15 @@ export const createList = async (
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${DEV_TOKEN}`,
     },
     credentials: 'include', // Include cookies for session-based auth
-    body: JSON.stringify({ title, position }),
+    body: JSON.stringify({ Title: title, Position: position }), // Fix: Use PascalCase for .NET API
   });
 
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Create list error:', errorText);
     throw new Error('Failed to create list');
   }
 };
@@ -113,22 +122,52 @@ export const createCard = async (
   boardId: string,
   listId: string,
   title: string,
-  position: number
+  position: number,
+  description?: string,
+  token?: string // Keep token param for backward compatibility
 ) => {
-  const response = await fetch(`${API_BASE}/boards/${boardId}/lists/${listId}/cards`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include', // Include cookies for session-based auth
-    body: JSON.stringify({ title, position }),
+  console.log('[CreateCard] Starting request with params:', {
+    boardId,
+    listId,
+    title,
+    position,
+    hasDescription: !!description,
   });
 
-  if (!response.ok) {
-    throw new Error('Failed to create card');
-  }
+  const requestBody = { Title: title, Description: description, Position: position };
+  console.log('[CreateCard] Request body:', requestBody);
+  console.log('[CreateCard] Request URL:', `${API_BASE}/boards/${boardId}/lists/${listId}/cards`);
 
-  return response.json();
+  try {
+    const response = await fetch(`${API_BASE}/boards/${boardId}/lists/${listId}/cards`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${DEV_TOKEN}`, // Always use DEV_TOKEN for consistency
+      },
+      credentials: 'include',
+      body: JSON.stringify(requestBody),
+    });
+
+    console.log('[CreateCard] Response status:', response.status);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[CreateCard] Error response:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText || 'No error body received'
+      });
+      throw new Error(`Failed to create card: ${response.status} ${response.statusText}${errorText ? ` - ${errorText}` : ''}`);
+    }
+
+    const data = await response.json();
+    console.log('[CreateCard] Success response:', data);
+    return data;
+  } catch (error) {
+    console.error('[CreateCard] Request failed:', error);
+    throw error;
+  }
 };
 
 // Mock cards for development - extracted from mockLists for easier access
@@ -202,7 +241,7 @@ const mockCards = [
 export const getCardById = async (cardId: string) => {
   // For development, return mock data unless explicitly disabled for E2E testing
   const DISABLE_MOCKS = process.env.NEXT_PUBLIC_DISABLE_MOCKS === 'true';
-  if (process.env.NODE_ENV === 'development' && !DISABLE_MOCKS) {
+  if (false && process.env.NODE_ENV === 'development' && !DISABLE_MOCKS) {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 300));
     
@@ -218,6 +257,7 @@ export const getCardById = async (cardId: string) => {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${DEV_TOKEN}`,
     },
     credentials: 'include', // Include cookies for session-based auth
   });
@@ -317,7 +357,7 @@ const mockLists = [
 export const fetchBoardById = async (boardId: string): Promise<Board> => {
   // In development, return mock data unless explicitly disabled for E2E testing
   const DISABLE_MOCKS = process.env.NEXT_PUBLIC_DISABLE_MOCKS === 'true';
-  if (process.env.NODE_ENV === 'development' && !DISABLE_MOCKS) {
+  if (false && process.env.NODE_ENV === 'development' && !DISABLE_MOCKS) {
     console.log('Using mock data for board:', boardId);
     await new Promise((resolve) => setTimeout(resolve, 500));
 
@@ -346,6 +386,7 @@ export const fetchBoardById = async (boardId: string): Promise<Board> => {
   const response = await fetch(`${API_BASE}/boards/${boardId}`, {
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${DEV_TOKEN}`,
     },
     credentials: 'include', // Include cookies for session-based auth
   });
@@ -363,19 +404,21 @@ export const fetchBoardById = async (boardId: string): Promise<Board> => {
 export const moveCard = async (
   boardId: string,
   cardId: string,
+  currentListId: string,
   newListId: string,
-  index: number,
+  newPosition: number,
   token?: string
 ) => {
-  const response = await fetch(`${API_BASE}/boards/${boardId}/cards/${cardId}/move`, {
-    method: 'PUT',
+  const response = await fetch(`${API_BASE}/boards/${boardId}/lists/${currentListId}/cards/${cardId}/move`, {
+    method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
+      'Authorization': `Bearer ${DEV_TOKEN}`,
     },
+    credentials: 'include',
     body: JSON.stringify({
-      newListId,
-      index,
+      TargetListId: newListId,
+      NewPosition: newPosition,
     }),
   });
 
@@ -383,11 +426,13 @@ export const moveCard = async (
     throw new Error('Failed to move card');
   }
 
-  return response.json();
+  // Backend returns 204 No Content on success, so no JSON to parse
+  return;
 };
 
 /**
  * Move a list to a new position
+ * TODO: Implement backend endpoint for list reordering
  */
 export const moveList = async (
   boardId: string,
@@ -395,12 +440,19 @@ export const moveList = async (
   newIndex: number,
   token?: string
 ) => {
+  // Temporarily disable list reordering until backend endpoint is implemented
+  console.warn('List reordering is not yet implemented on the backend');
+  throw new Error('List reordering is not yet implemented');
+  
+  // TODO: Uncomment when backend endpoint is ready
+  /*
   const response = await fetch(`${API_BASE}/boards/${boardId}/lists/move`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
+      'Authorization': `Bearer ${DEV_TOKEN}`,
     },
+    credentials: 'include',
     body: JSON.stringify({
       oldIndex,
       newIndex,
@@ -411,5 +463,57 @@ export const moveList = async (
     throw new Error('Failed to move list');
   }
 
-  return response.json();
+  // Backend returns 204 No Content on success, so no JSON to parse
+  return;
+  */
+};
+
+/**
+ * Update a list's title
+ */
+export const updateList = async (
+  boardId: string,
+  listId: string,
+  title: string
+) => {
+  const response = await fetch(`${API_BASE}/boards/${boardId}/lists/${listId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${DEV_TOKEN}`,
+    },
+    credentials: 'include',
+    body: JSON.stringify({
+      Title: title,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Update list error:', errorText);
+    throw new Error('Failed to update list');
+  }
+};
+
+/**
+ * Delete a list and all its cards
+ */
+export const deleteList = async (
+  boardId: string,
+  listId: string
+) => {
+  const response = await fetch(`${API_BASE}/boards/${boardId}/lists/${listId}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${DEV_TOKEN}`,
+    },
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Delete list error:', errorText);
+    throw new Error('Failed to delete list');
+  }
 };

@@ -82,6 +82,9 @@ namespace TaskHub.Api.Core.Services
             card.Position = createCardDto.Position >= 0 ? createCardDto.Position : maxPosition + 1;
             card.CreatedAt = DateTime.UtcNow;
             card.UpdatedAt = DateTime.UtcNow;
+            
+            // Ensure metadata is never null - initialize with empty dictionary if not set
+            card.Metadata ??= new Dictionary<string, object>();
 
             try
             {

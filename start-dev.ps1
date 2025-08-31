@@ -223,8 +223,8 @@ function Show-Summary {
     Write-Host ""
     Write-Host "Services:" -ForegroundColor White
     Write-Host "  Frontend:  http://localhost:3000" -ForegroundColor White
-    Write-Host "  Backend:   http://localhost:5000" -ForegroundColor White
-    Write-Host "  Swagger:   http://localhost:5000/swagger" -ForegroundColor White
+    Write-Host "  Backend:   http://localhost:5205" -ForegroundColor White
+    Write-Host "  Swagger:   http://localhost:5205/swagger" -ForegroundColor White
     Write-Host "  Database:  localhost:5432 (postgres/postgres)" -ForegroundColor White
     Write-Host ""
     Write-Host "To stop services:" -ForegroundColor Gray

@@ -132,27 +132,20 @@ export function BoardComponentsShowcase() {
     setIsLoading(!isLoading);
   };
 
-  const handleMoveCard = (cardId: string, toListId: string, toIndex: number) => {
+  const handleMoveCard = (cardId: string, currentListId: string, newListId: string, newPosition: number) => {
     setLists((prevLists) => {
       // Find the source list and card
-      let sourceListIndex = -1;
-      let sourceCardIndex = -1;
-      let cardToMove: CardProps | null = null;
+      const sourceListIndex = prevLists.findIndex((list) => list.id === currentListId);
+      if (sourceListIndex === -1) return prevLists;
 
-      for (let i = 0; i < prevLists.length; i++) {
-        const cardIndex = prevLists[i].cards.findIndex((card) => card.id === cardId);
-        if (cardIndex !== -1) {
-          sourceListIndex = i;
-          sourceCardIndex = cardIndex;
-          cardToMove = prevLists[i].cards[cardIndex];
-          break;
-        }
-      }
+      const sourceCardIndex = prevLists[sourceListIndex].cards.findIndex((card) => card.id === cardId);
+      if (sourceCardIndex === -1) return prevLists;
 
+      const cardToMove = prevLists[sourceListIndex].cards[sourceCardIndex];
       if (!cardToMove) return prevLists;
 
       // Find the target list
-      const targetListIndex = prevLists.findIndex((list) => list.id === toListId);
+      const targetListIndex = prevLists.findIndex((list) => list.id === newListId);
       if (targetListIndex === -1) return prevLists;
 
       const newLists = [...prevLists];
@@ -166,7 +159,7 @@ export function BoardComponentsShowcase() {
       // Add card to target list
       const targetList = newLists[targetListIndex];
       const newCards = [...targetList.cards];
-      newCards.splice(toIndex, 0, cardToMove);
+      newCards.splice(newPosition, 0, cardToMove);
 
       newLists[targetListIndex] = {
         ...targetList,
