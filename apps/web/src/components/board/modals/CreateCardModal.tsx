@@ -82,7 +82,7 @@ export function CreateCardModal({
     resolver: zodResolver(CreateCardSchema),
     defaultValues: {
       title: '',
-      description: '',
+      description: undefined as unknown as string | undefined,
     },
   });
 

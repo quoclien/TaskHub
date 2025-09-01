@@ -13,7 +13,7 @@ namespace TaskHub.Api.Models.Dtos.Cards
         [MaxLength(2000)]
         public string? Description { get; set; }
 
-        public int? Position { get; set; }
+        public double? Position { get; set; }
 
         public Guid? ListId { get; set; }
 

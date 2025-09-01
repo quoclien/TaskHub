@@ -11,7 +11,7 @@ namespace TaskHub.Api.Core.Interfaces
         Task<CardDto?> GetCardByIdAsync(Guid id);
         Task<CardDto> CreateCardAsync(Guid listId, CreateCardDto createCardDto);
         Task UpdateCardAsync(Guid id, UpdateCardDto updateCardDto);
-        Task MoveCardAsync(Guid cardId, Guid targetListId, int newPosition);
+        Task MoveCardAsync(Guid cardId, Guid targetListId, double newPosition);
         Task DeleteCardAsync(Guid id);
     }
 }

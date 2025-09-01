@@ -109,7 +109,8 @@ function Stop-RunningProcesses {
 
         Write-Host ""
         Write-Host "Successfully stopped $stoppedCount out of $($allProcesses.Count) processes" -ForegroundColor Cyan
-    } else {
+    }
+} else {
         Write-Host ""
         Write-Host "Processes not stopped. To stop them manually:" -ForegroundColor Cyan
         Write-Host "  1. Use Ctrl+C in each terminal window" -ForegroundColor Gray
@@ -117,7 +118,6 @@ function Stop-RunningProcesses {
         Write-Host "  3. Or use Task Manager to end processes" -ForegroundColor Gray
         Write-Host "  4. Or run: .\stop-dev.ps1 -KillProcesses" -ForegroundColor Gray
     }
-}
 
 function Show-DockerStatus {
     Write-Host "Docker containers status:" -ForegroundColor Cyan

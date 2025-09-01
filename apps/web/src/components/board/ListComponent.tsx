@@ -62,12 +62,8 @@ interface ListComponentProps {
 export function ListComponent({
   id,
   title,
-  position,
   cards,
   boardId,
-  onRename,
-  onDelete,
-  onAddCard,
   className,
 }: ListComponentProps) {
   // State
@@ -87,11 +83,6 @@ export function ListComponent({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-  };
-
-  // Event Handlers
-  const handleMenuClose = () => {
-    setIsMenuOpen(false);
   };
 
   // Render Helpers
@@ -170,10 +161,14 @@ export function ListComponent({
     return (
       <div
         className={cn(
-          'space-y-2 mb-3 max-h-[calc(100vh-200px)] overflow-y-auto',
-          'min-h-[100px]', // Ensure there's always a drop target
+          // Allow cards container to grow/shrink naturally with content
+          'space-y-2 overflow-y-auto pr-1',
+          'min-h-[2.5rem]', // Minimum height to show empty state
           isDragging && 'opacity-50'
         )}
+        style={{
+          maxHeight: 'calc(100vh - 260px)',
+        }}
       >
         <SortableContext
           items={cardIds}
@@ -219,7 +214,9 @@ export function ListComponent({
       {...attributes}
       {...listeners}
       className={cn(
-        'p-3 bg-gray-100 rounded-md shrink-0 w-72',
+        // Trello-like list: auto-shrinking height with content, capped to viewport
+        'p-3 bg-gray-100 rounded-md w-72',
+        'flex flex-col gap-2',
         'snap-start', // For scroll snap
         isDragging && 'opacity-50',
         className
@@ -228,8 +225,14 @@ export function ListComponent({
       aria-label={`${title} list`}
     >
       {renderHeader()}
-      {renderCards()}
-      {renderAddCardButton()}
+      {/* Cards area auto-adjusts height based on content */}
+      <div className='flex-shrink flex-grow-0 min-h-[12px]'>
+        {renderCards()}
+      </div>
+      {/* Keep the add button visually anchored at the bottom of the list */}
+      <div className='pt-1 mt-auto'>
+        {renderAddCardButton()}
+      </div>
     </div>
   );
 }

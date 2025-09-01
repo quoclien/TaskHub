@@ -92,7 +92,7 @@ To get a local copy up and running, follow these simple steps.
     cd ../..
     ```
 
-    The frontend will typically run on `http://localhost:3000` and the backend API on `http://localhost:5000` (or as configured).
+    The frontend will typically run on `http://localhost:3000` and the backend API on `http://localhost:5205` (or as configured).
 
 ## Contributing
 

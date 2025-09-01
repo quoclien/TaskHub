@@ -164,20 +164,28 @@ namespace TaskHub.Api.Core.Services
             var boardId = list.BoardId;
             var position = list.Position;
 
-            // First, delete all cards in the list
-            var cards = await _cardRepository.GetCardsByListIdAsync(id);
-            foreach (var card in cards)
+            try
             {
-                _cardRepository.Delete(card);
+                // First, delete all cards in the list using batch operation
+                await _cardRepository.DeleteCardsByListIdAsync(id);
+
+                // Delete the list
+                _listRepository.Delete(list);
+                
+                // Save all changes in a single transaction
+                await SaveChangesAsync();
+
+                // Reorder remaining lists
+                await _listRepository.ReorderListsAfterDeletion(boardId, position);
+                await SaveChangesAsync();
+
+                _logger.LogInformation("Successfully deleted list {ListId} and all its cards", id);
             }
-
-            // Delete the list
-            _listRepository.Delete(list);
-            await SaveChangesAsync();
-
-            // Reorder remaining lists
-            await _listRepository.ReorderListsAfterDeletion(boardId, position);
-            await SaveChangesAsync();
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting list {ListId}", id);
+                throw new ApplicationException("An error occurred while deleting the list.", ex);
+            }
         }
 
         private async Task ReorderLists(Guid boardId, int oldPosition, int newPosition)

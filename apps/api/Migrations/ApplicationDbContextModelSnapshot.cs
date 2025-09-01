@@ -120,7 +120,6 @@ namespace TaskHub.Api.Migrations
                         .HasColumnName("created_at");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)")
                         .HasColumnName("description");
@@ -145,8 +144,8 @@ namespace TaskHub.Api.Migrations
                         .HasColumnName("metadata")
                         .HasDefaultValueSql("'{}'::jsonb");
 
-                    b.Property<int>("Position")
-                        .HasColumnType("integer")
+                    b.Property<double>("Position")
+                        .HasColumnType("double precision")
                         .HasColumnName("position");
 
                     b.Property<string>("Title")

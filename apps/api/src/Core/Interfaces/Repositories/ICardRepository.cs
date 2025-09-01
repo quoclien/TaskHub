@@ -9,9 +9,10 @@ namespace TaskHub.Api.Core.Interfaces.Repositories
     {
         Task<IEnumerable<CardEntity>> GetCardsByListIdAsync(Guid listId);
         Task<bool> ListExistsAsync(Guid listId);
-        Task<int> GetMaxPositionAsync(Guid listId);
-        Task ReorderCardsAsync(Guid listId, int fromPosition, int toPosition);
-        Task ReorderCardsAfterDeletion(Guid listId, int deletedPosition);
-        Task ReorderCardsAfterInsertion(Guid listId, int insertedPosition);
+        Task<double> GetMaxPositionAsync(Guid listId);
+        Task UpdateCardPositionAsync(Guid cardId, double newPosition);
+        Task ReorderCardsAfterDeletion(Guid listId, double deletedPosition);
+        Task ReorderCardsAfterInsertion(Guid listId, double insertedPosition);
+        Task DeleteCardsByListIdAsync(Guid listId);
     }
 }

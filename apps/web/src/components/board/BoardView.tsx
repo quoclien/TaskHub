@@ -47,7 +47,7 @@ interface BoardViewProps {
     cardId: string,
     currentListId: string,
     newListId: string,
-    newPosition: number
+    newPosition: number // Now uses precise floating-point position instead of index
   ) => void;
   onMoveList?: (oldIndex: number, newIndex: number) => void;
 }
@@ -165,26 +165,92 @@ export const BoardView = forwardRef<HTMLDivElement, BoardViewProps>(
         }
       }
 
-      // Handle same-list card reordering (not handled in dragOver)
+      // Handle same-list card reordering using precise floating-point positioning
       if (activeData?.type === 'card' && over) {
         const overData = over.data.current as CardMeta | ListMeta;
+
+        // Helper to get the current sorted cards for a given list from children
+        const getListCards = (listId: string) => {
+          const lists = React.Children.toArray(children);
+          const list = lists.find((l: any) => (l as any).props.id === listId) as any;
+          if (!list) return [];
+          return (list.props.cards || []).sort((a: any, b: any) => (a.position || 0) - (b.position || 0));
+        };
+
+        // Helper to calculate precise position using floating-point arithmetic
+        const calculatePrecisePosition = (cards: any[], activeCardId: string, overCardId?: string, isDropOnList?: boolean) => {
+          const activeCard = cards.find((c: any) => c.id === activeCardId);
+          if (!activeCard) return 0;
+
+          const currentPosition = activeCard.position || 0;
+
+          // If dropping on a specific card
+          if (overCardId) {
+            const overCard = cards.find((c: any) => c.id === overCardId);
+            if (!overCard) return currentPosition;
+
+            const overIndex = cards.findIndex((c: any) => c.id === overCardId);
+            const activeIndex = cards.findIndex((c: any) => c.id === activeCardId);
+
+            // If moving to the same position, return current position
+            if (overIndex === activeIndex) return currentPosition;
+
+            // Calculate new position based on adjacent cards
+            if (overIndex === 0) {
+              // Moving to first position
+              const nextCard = cards[1];
+              return nextCard ? (nextCard.position || 0) - 1 : -1;
+            } else if (overIndex === cards.length - 1) {
+              // Moving to last position
+              const prevCard = cards[overIndex - 1];
+              return prevCard ? (prevCard.position || 0) + 1 : 1;
+            } else {
+              // Moving between two cards
+              const prevCard = cards[overIndex - 1];
+              const nextCard = cards[overIndex + 1];
+              const prevPos = prevCard?.position || 0;
+              const nextPos = nextCard?.position || 0;
+              return (prevPos + nextPos) / 2;
+            }
+          }
+
+          // If dropping on the list itself (bottom)
+          if (isDropOnList && cards.length > 0) {
+            const lastCard = cards[cards.length - 1];
+            return (lastCard.position || 0) + 1;
+          }
+
+          return currentPosition;
+        };
+
+        const activeCardId = active.id as string;
+        const activeCardData = activeData as CardMeta;
+
         if (overData?.type === 'card') {
-          const activeCardData = activeData as CardMeta;
           const overCardData = overData as CardMeta;
 
-          // Only handle same-list reordering here (cross-list handled in dragOver)
-          if (
-            activeCardData.listId === overCardData.listId &&
-            activeCardData.index !== overCardData.index
-          ) {
-            const activeCardId = active.id as string;
-            const currentListId = activeCardData.listId;
-            const targetListId = overCardData.listId;
-            const newPosition =
-              activeCardData.index < overCardData.index
-                ? overCardData.index // Moving down
-                : overCardData.index; // Moving up
-            onMoveCard?.(activeCardId, currentListId, targetListId, newPosition);
+          if (activeCardData.listId === overCardData.listId) {
+            const cards = getListCards(activeCardData.listId);
+            const newPosition = calculatePrecisePosition(cards, activeCardId, over.id as string);
+
+            // Only trigger move if position actually changed
+            const currentCard = cards.find((c: any) => c.id === activeCardId);
+            if (currentCard && Math.abs((currentCard.position || 0) - newPosition) > 0.0001) {
+              onMoveCard?.(activeCardId, activeCardData.listId, overCardData.listId, newPosition);
+            }
+          }
+        } else if (overData?.type === 'list') {
+          // Dropped onto the list itself (often at the bottom)
+          const targetListId = over.id as string;
+          if (targetListId === activeCardData.listId) {
+            const cards = getListCards(targetListId);
+            const newPosition = calculatePrecisePosition(cards, activeCardId, undefined, true);
+
+            // Only trigger move if position actually changed
+            const currentCard = cards.find((c: any) => c.id === activeCardId);
+            if (currentCard && Math.abs((currentCard.position || 0) - newPosition) > 0.0001) {
+              onMoveCard?.(activeCardId, activeCardData.listId, targetListId, newPosition);
+            }
           }
         }
       }
@@ -294,7 +360,7 @@ export const BoardView = forwardRef<HTMLDivElement, BoardViewProps>(
         <div
           ref={ref}
           className={cn(
-            'flex gap-x-4 overflow-x-auto pb-4',
+            'flex items-start gap-x-4 overflow-x-auto pb-4',
             'scroll-smooth scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent',
             'snap-x snap-mandatory',
             className

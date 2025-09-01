@@ -31,41 +31,28 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
             return await _context.Lists.AnyAsync(l => l.Id == listId);
         }
 
-        public async Task<int> GetMaxPositionAsync(Guid listId)
+        public async Task<double> GetMaxPositionAsync(Guid listId)
         {
+            // Materialize then compute max to avoid provider translation issues and
+            // return -1 when there are no cards so first insert becomes position 0
             var positions = await _context.Cards
                 .Where(c => c.ListId == listId)
                 .Select(c => c.Position)
-                .ToListAsync(); // Materialize the query before Max()
-
-            return positions.DefaultIfEmpty(0).Max();
-        }
-
-        public async Task ReorderCardsAsync(Guid listId, int fromPosition, int toPosition)
-        {
-            // Don't include cards at the target position since the moved card is already there
-            var cardsToUpdate = await _context.Cards
-                .Where(c => c.ListId == listId && c.Position != toPosition &&
-                            ((fromPosition < toPosition && c.Position > fromPosition && c.Position <= toPosition) ||
-                             (fromPosition > toPosition && c.Position >= toPosition && c.Position < fromPosition)))
                 .ToListAsync();
 
-            foreach (var card in cardsToUpdate)
+            return positions.Count == 0 ? -1.0 : positions.Max();
+        }
+
+        public async Task UpdateCardPositionAsync(Guid cardId, double newPosition)
+        {
+            var card = await _context.Cards.FindAsync(cardId);
+            if (card != null)
             {
-                if (fromPosition < toPosition)
-                {
-                    // Moving down: shift cards between fromPosition and toPosition down by 1
-                    card.Position--;
-                }
-                else
-                {
-                    // Moving up: shift cards between toPosition and fromPosition up by 1
-                    card.Position++;
-                }
+                card.Position = newPosition;
             }
         }
 
-        public async Task ReorderCardsAfterDeletion(Guid listId, int deletedPosition)
+        public async Task ReorderCardsAfterDeletion(Guid listId, double deletedPosition)
         {
             var cardsToUpdate = await _context.Cards
                 .Where(c => c.ListId == listId && c.Position > deletedPosition)
@@ -77,10 +64,11 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
             }
         }
 
-        public async Task ReorderCardsAfterInsertion(Guid listId, int insertedPosition)
+        public async Task ReorderCardsAfterInsertion(Guid listId, double insertedPosition)
         {
+            // Shift cards at and after the inserted position up by 1 to make room
             var cardsToUpdate = await _context.Cards
-                .Where(c => c.ListId == listId && c.Position > insertedPosition)
+                .Where(c => c.ListId == listId && c.Position >= insertedPosition)
                 .ToListAsync();
 
             foreach (var card in cardsToUpdate)
@@ -88,7 +76,17 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
                 card.Position++;
             }
         }
+        public async Task DeleteCardsByListIdAsync(Guid listId)
+        {
+            var cardsToDelete = await _context.Cards
+                .Where(c => c.ListId == listId)
+                .ToListAsync();
 
+            if (cardsToDelete.Any())
+            {
+                _context.Cards.RemoveRange(cardsToDelete);
+            }
+        }
 
     }
 }

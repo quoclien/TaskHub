@@ -101,6 +101,36 @@ namespace TaskHub.Api.IntegrationTests.Controllers
         }
 
         [Fact]
+        public async Task CreateCard_WithoutDescription_ReturnsCreated_WithNullDescription()
+        {
+            // Arrange
+            var client = _factory.GetAuthenticatedClient();
+            var (board, list, _) = await SeedTestBoardWithListAsync();
+            var createCardDto = new CreateCardDto
+            {
+                Title = "Card Without Description",
+                Position = 1
+            };
+
+            // Act
+            var response = await client.PostAsJsonAsync($"/api/boards/{board.Id}/lists/{list.Id}/cards", createCardDto);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            var result = await response.Content.ReadFromJsonAsync<CardDto>();
+            Assert.NotNull(result);
+            Assert.Equal(createCardDto.Title, result.Title);
+            Assert.Null(result.Description);
+
+            // Verify in database the description is actually null
+            using var scope = _factory.Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var createdCard = await dbContext.Cards.FindAsync(result.Id);
+            Assert.NotNull(createdCard);
+            Assert.Null(createdCard.Description);
+        }
+
+        [Fact]
         public async Task CreateCard_WithInvalidListId_ReturnsNotFound()
         {
             // Arrange

@@ -143,7 +143,7 @@ namespace TaskHub.Api.Core.Services
             }
         }
 
-        public async Task MoveCardAsync(Guid cardId, Guid targetListId, int newPosition)
+        public async Task MoveCardAsync(Guid cardId, Guid targetListId, double newPosition)
         {
             if (cardId == Guid.Empty)
                 throw new ArgumentException(InvalidCardId, nameof(cardId));
@@ -219,9 +219,9 @@ namespace TaskHub.Api.Core.Services
             }
         }
 
-        private async Task HandleCardReorderingAsync(CardEntity card, Guid originalListId, int originalPosition, bool listChanged)
+        private async Task HandleCardReorderingAsync(CardEntity card, Guid originalListId, double originalPosition, bool listChanged)
         {
-            var positionChanged = card.Position != originalPosition;
+            var positionChanged = Math.Abs(card.Position - originalPosition) > 0.0001;
 
             if (listChanged)
             {
@@ -231,8 +231,8 @@ namespace TaskHub.Api.Core.Services
             }
             else if (positionChanged)
             {
-                _logger.LogDebug("Reordering in list {ListId} after position change from {OldPosition} to {NewPosition}", card.ListId, originalPosition, card.Position);
-                await _cardRepository.ReorderCardsAsync(card.ListId, originalPosition, card.Position);
+                _logger.LogDebug("Updating card {CardId} position from {OldPosition} to {NewPosition}", card.Id, originalPosition, card.Position);
+                await _cardRepository.UpdateCardPositionAsync(card.Id, card.Position);
             }
         }
     }

@@ -11,7 +11,8 @@ namespace TaskHub.Api.Infrastructure.Mapping
         {
             CreateMap<CardEntity, CardDto>();
             CreateMap<CreateCardDto, CardEntity>()
-                .ForMember(dest => dest.Metadata, opt => opt.MapFrom(src => new Dictionary<string, object>()));
+                .ForMember(dest => dest.Metadata, opt => opt.MapFrom(src => new Dictionary<string, object>()))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => string.IsNullOrWhiteSpace(src.Description) ? null : src.Description));
             CreateMap<UpdateCardDto, CardEntity>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
         }

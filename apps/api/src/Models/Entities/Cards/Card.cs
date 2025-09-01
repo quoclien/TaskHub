@@ -11,9 +11,9 @@ namespace TaskHub.Api.Models.Entities.Cards
     {
         // Required properties with default values
         public string Title { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
+        public string? Description { get; set; }
         public Guid ListId { get; set; }
-        public int Position { get; set; }
+        public double Position { get; set; }
 
         // Nullable properties
         public DateTime? DueDate { get; set; }

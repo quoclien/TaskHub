@@ -9,6 +9,6 @@ namespace TaskHub.Api.Models.Dtos.Cards
         public Guid TargetListId { get; set; }
 
         [Required]
-        public int NewPosition { get; set; }
+        public double NewPosition { get; set; }
     }
 }
