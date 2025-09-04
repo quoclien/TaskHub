@@ -42,18 +42,20 @@ function Write-Error {
 
 function Stop-DockerContainers {
     Write-Host "Stopping Docker containers..." -ForegroundColor Cyan
-    
+
     try {
-        docker-compose down 2>$null
+        $result = docker-compose down 2>$null
         if ($LASTEXITCODE -eq 0) {
             Write-Status "Docker containers stopped"
             return $true
-        } else {
+        }
+        else {
             Write-Error "Failed to stop some Docker containers"
             return $false
         }
-    } catch {
-        Write-Error "Error stopping Docker containers"
+    }
+    catch {
+        Write-Error "Error stopping Docker containers: $($_.Exception.Message)"
         return $false
     }
 }
@@ -70,10 +72,13 @@ function Stop-RunningProcesses {
     # Look for pnpm processes
     $pnpmProcesses = Get-Process -Name "pnpm" -ErrorAction SilentlyContinue
 
-    $allProcesses = @($dotnetProcesses) + @($nodeProcesses) + @($pnpmProcesses)
+    $allProcesses = @()
+    if ($dotnetProcesses) { $allProcesses += $dotnetProcesses }
+    if ($nodeProcesses) { $allProcesses += $nodeProcesses }
+    if ($pnpmProcesses) { $allProcesses += $pnpmProcesses }
 
     if ($allProcesses.Count -eq 0) {
-        Write-Host "[✓] No development processes found running" -ForegroundColor Green
+        Write-Host "[+] No development processes found running" -ForegroundColor Green
         return
     }
 
@@ -88,7 +93,7 @@ function Stop-RunningProcesses {
     if (-not $KillProcesses -and -not $Force) {
         Write-Host ""
         $response = Read-Host "Do you want to stop these processes? (y/n)"
-        $shouldKill = $response -eq 'y' -or $response -eq 'Y'
+        $shouldKill = ($response -eq 'y' -or $response -eq 'Y')
     }
 
     if ($shouldKill) {
@@ -99,18 +104,19 @@ function Stop-RunningProcesses {
         foreach ($process in $allProcesses) {
             try {
                 $process.Kill()
-                $process.WaitForExit(5000)  # Wait up to 5 seconds
-                Write-Host "[✓] Stopped $($process.Name) (PID: $($process.Id))" -ForegroundColor Green
+                $process.WaitForExit(5000)
+                Write-Host "[+] Stopped $($process.Name) (PID: $($process.Id))" -ForegroundColor Green
                 $stoppedCount++
-            } catch {
-                Write-Host "[⚠] Failed to stop $($process.Name) (PID: $($process.Id)): $($_.Exception.Message)" -ForegroundColor Yellow
+            }
+            catch {
+                Write-Host "[!] Failed to stop $($process.Name) (PID: $($process.Id)): $($_.Exception.Message)" -ForegroundColor Yellow
             }
         }
 
         Write-Host ""
         Write-Host "Successfully stopped $stoppedCount out of $($allProcesses.Count) processes" -ForegroundColor Cyan
     }
-} else {
+    else {
         Write-Host ""
         Write-Host "Processes not stopped. To stop them manually:" -ForegroundColor Cyan
         Write-Host "  1. Use Ctrl+C in each terminal window" -ForegroundColor Gray
@@ -118,10 +124,11 @@ function Stop-RunningProcesses {
         Write-Host "  3. Or use Task Manager to end processes" -ForegroundColor Gray
         Write-Host "  4. Or run: .\stop-dev.ps1 -KillProcesses" -ForegroundColor Gray
     }
+}
 
 function Show-DockerStatus {
     Write-Host "Docker containers status:" -ForegroundColor Cyan
-    
+
     try {
         $runningContainers = docker-compose ps --services --filter "status=running" 2>$null
         if ($runningContainers) {
@@ -129,11 +136,13 @@ function Show-DockerStatus {
             foreach ($container in $runningContainers) {
                 Write-Host "  - $container" -ForegroundColor Gray
             }
-        } else {
+        }
+        else {
             Write-Status "All containers stopped"
         }
-    } catch {
-        Write-Host "Unable to check container status" -ForegroundColor Gray
+    }
+    catch {
+        Write-Host "Unable to check container status: $($_.Exception.Message)" -ForegroundColor Gray
     }
 }
 
@@ -148,7 +157,7 @@ Write-Host "====================================" -ForegroundColor Red
 Write-Host ""
 
 # Stop Docker containers
-Stop-DockerContainers | Out-Null
+$result = Stop-DockerContainers
 
 # Handle running processes
 Stop-RunningProcesses
@@ -161,6 +170,7 @@ Write-Host ""
 Write-Host "Stop script completed!" -ForegroundColor Green
 if ($KillProcesses) {
     Write-Host "All development processes and containers have been stopped." -ForegroundColor Green
-} else {
+}
+else {
     Write-Host "Note: Use -KillProcesses to automatically stop development processes" -ForegroundColor Gray
 } 

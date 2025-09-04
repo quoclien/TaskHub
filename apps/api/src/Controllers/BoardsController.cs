@@ -143,5 +143,71 @@ namespace TaskHub.Api.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error deleting board");
             }
         }
+
+        /// <summary>
+        /// Join a board as a member
+        /// </summary>
+        /// <param name="id">The ID of the board to join</param>
+        [HttpPost("{id}/join")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> JoinBoard(Guid id)
+        {
+            try
+            {
+                var userId = Guid.Parse(User?.Identity?.Name ?? throw new UnauthorizedAccessException("User not authenticated"));
+
+                var success = await _boardService.AddBoardMemberAsync(id, userId, userId, BoardRole.Member);
+                if (!success)
+                {
+                    return BadRequest("Unable to join board. Board may be private or you may already be a member.");
+                }
+
+                return Ok(new { message = "Successfully joined board" });
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error joining board with ID: {BoardId}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error joining board");
+            }
+        }
+
+        /// <summary>
+        /// Leave a board (remove yourself as a member)
+        /// </summary>
+        /// <param name="id">The ID of the board to leave</param>
+        [HttpPost("{id}/leave")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> LeaveBoard(Guid id)
+        {
+            try
+            {
+                var userId = Guid.Parse(User?.Identity?.Name ?? throw new UnauthorizedAccessException("User not authenticated"));
+
+                var success = await _boardService.RemoveBoardMemberAsync(id, userId, userId);
+                if (!success)
+                {
+                    return BadRequest("Unable to leave board. You may not be a member or may be the owner.");
+                }
+
+                return Ok(new { message = "Successfully left board" });
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error leaving board with ID: {BoardId}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error leaving board");
+            }
+        }
     }
 }
