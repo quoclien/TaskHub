@@ -14,12 +14,23 @@ export interface List {
   cards: Card[];
 }
 
+export interface BoardMember {
+  userId: string;
+  userName: string;
+  userEmail: string;
+  userAvatar?: string | null;
+  role: 'Owner' | 'Admin' | 'Member' | 'Viewer';
+  joinedAt: string;
+}
+
 export interface Board {
   id: string;
   title: string;
   description?: string | null;
   isPublic?: boolean;
-  created_at: string;
-  updated_at: string;
+  ownerId?: string;
+  createdAt: string;
+  updatedAt: string;
   lists?: List[];
+  members?: BoardMember[];
 }

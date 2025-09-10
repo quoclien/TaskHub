@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
+using TaskHub.Api.Common;
 using TaskHub.Api.Core.Exceptions;
 using TaskHub.Api.Core.Interfaces;
 using TaskHub.Api.Core.Interfaces.Repositories;
@@ -240,49 +241,127 @@ namespace TaskHub.Api.Core.Services
             }
         }
 
-        public async Task<bool> RemoveBoardMemberAsync(Guid boardId, Guid userId, Guid currentUserId)
+        public async Task<ServiceResult<object>> RemoveBoardMemberAsync(Guid boardId, Guid userId, Guid currentUserId)
         {
             if (boardId == Guid.Empty)
-                throw new ArgumentException("Board ID cannot be empty", nameof(boardId));
+                return ServiceResult<object>.Fail(BoardErrorCodes.BoardNotFound, "Board ID cannot be empty");
             if (userId == Guid.Empty)
-                throw new ArgumentException("User ID cannot be empty", nameof(userId));
+                return ServiceResult<object>.Fail(BoardErrorCodes.UserNotFound, "User ID cannot be empty");
             if (currentUserId == Guid.Empty)
-                throw new ArgumentException("Current user ID cannot be empty", nameof(currentUserId));
+                return ServiceResult<object>.Fail(BoardErrorCodes.Unauthorized, "Current user ID cannot be empty");
 
-            var hasAccess = await _boardRepository.UserHasAccess(boardId, currentUserId, BoardRole.Owner);
-            if (!hasAccess)
+            // Load board with details to check membership and ownership
+            var board = await _boardRepository.GetByIdWithDetailsAsync(boardId);
+            if (board == null)
             {
-                _logger.LogWarning("Unauthorized member removal attempt on board {BoardId} by user {UserId}", boardId, currentUserId);
-                throw new UnauthorizedException("Only board admins can remove members.");
+                _logger.LogWarning("Board {BoardId} not found for member removal", boardId);
+                return ServiceResult<object>.Fail(BoardErrorCodes.BoardNotFound, "Board not found");
             }
 
-            if (userId == currentUserId)
-            {
-                var board = await _boardRepository.GetByIdWithDetailsAsync(boardId);
-                if (board?.BoardMembers?.Count(m => m.Role == BoardRole.Owner) <= 1)
-                {
-                    _logger.LogWarning("Attempt to remove last admin from board {BoardId}", boardId);
-                    throw new InvalidOperationException(LastAdminRemoval);
-                }
-            }
-
+            // Check if user is a member
             var member = await _boardRepository.GetBoardMemberAsync(boardId, userId);
             if (member == null)
             {
                 _logger.LogWarning("Member {UserId} not found in board {BoardId}", userId, boardId);
-                return false;
+                return ServiceResult<object>.Fail(BoardErrorCodes.NotMember, "User is not a member of this board");
+            }
+
+            // Allow self-removal or require admin access for removing others
+            if (userId != currentUserId)
+            {
+                var hasAccess = await _boardRepository.UserHasAccess(boardId, currentUserId, BoardRole.Owner);
+                if (!hasAccess)
+                {
+                    _logger.LogWarning("Unauthorized member removal attempt on board {BoardId} by user {UserId}", boardId, currentUserId);
+                    return ServiceResult<object>.Fail(BoardErrorCodes.Unauthorized, "Only board admins can remove other members");
+                }
+            }
+
+            // Check last owner rule for self-removal
+            if (userId == currentUserId && member.Role == BoardRole.Owner)
+            {
+                var ownerCount = board.BoardMembers?.Count(m => m.Role == BoardRole.Owner) ?? 0;
+                if (ownerCount <= 1)
+                {
+                    _logger.LogWarning("Attempt by owner {UserId} to leave board {BoardId} as the last owner", userId, boardId);
+                    return ServiceResult<object>.Fail(BoardErrorCodes.LastOwner, "Cannot leave board as the last owner. Transfer ownership or delete the board instead");
+                }
             }
 
             try
             {
                 _boardRepository.RemoveBoardMember(member);
                 await SaveChangesAsync();
-                return true;
+                
+                _logger.LogInformation("User {UserId} successfully removed from board {BoardId}", userId, boardId);
+                return ServiceResult<object>.Ok(BoardErrorCodes.Left, "Successfully left board");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error removing user {UserId} from board {BoardId}", userId, boardId);
                 throw new ApplicationException("An error occurred while removing the member from the board", ex);
+            }
+        }
+
+        /// <summary>
+        /// Allow a user to join a public board
+        /// </summary>
+        public async Task<ServiceResult<object>> JoinPublicBoardAsync(Guid boardId, Guid userId)
+        {
+            if (boardId == Guid.Empty)
+                return ServiceResult<object>.Fail(BoardErrorCodes.BoardNotFound, "Board ID cannot be empty");
+            if (userId == Guid.Empty)
+                return ServiceResult<object>.Fail(BoardErrorCodes.UserNotFound, "User ID cannot be empty");
+
+            // Check if board exists and is public
+            var board = await _boardRepository.GetByIdWithDetailsAsync(boardId);
+            if (board == null)
+            {
+                _logger.LogWarning("Board {BoardId} not found for join attempt by user {UserId}", boardId, userId);
+                return ServiceResult<object>.Fail(BoardErrorCodes.BoardNotFound, "Board not found");
+            }
+
+            if (!board.IsPublic)
+            {
+                _logger.LogWarning("User {UserId} attempted to join private board {BoardId}", userId, boardId);
+                return ServiceResult<object>.Fail(BoardErrorCodes.BoardPrivate, "Board is private and requires an invitation");
+            }
+
+            // Check if user is already a member
+            if (await _boardRepository.IsBoardMemberAsync(boardId, userId))
+            {
+                _logger.LogInformation("User {UserId} is already a member of board {BoardId}", userId, boardId);
+                return ServiceResult<object>.Ok(BoardErrorCodes.AlreadyMember, "User is already a member of this board");
+            }
+
+            // Verify user exists
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+            {
+                _logger.LogWarning("User {UserId} not found when joining board {BoardId}", userId, boardId);
+                return ServiceResult<object>.Fail(BoardErrorCodes.UserNotFound, "User not found");
+            }
+
+            try
+            {
+                var member = new BoardMemberEntity
+                {
+                    BoardId = boardId,
+                    UserId = userId,
+                    Role = BoardRole.Member,
+                    JoinedAt = DateTime.UtcNow
+                };
+
+                await _boardRepository.AddBoardMemberAsync(member);
+                await SaveChangesAsync();
+                
+                _logger.LogInformation("User {UserId} successfully joined public board {BoardId}", userId, boardId);
+                return ServiceResult<object>.Ok(BoardErrorCodes.Joined, "Successfully joined board");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding user {UserId} to public board {BoardId}", userId, boardId);
+                throw new ApplicationException("An error occurred while joining the board", ex);
             }
         }
 

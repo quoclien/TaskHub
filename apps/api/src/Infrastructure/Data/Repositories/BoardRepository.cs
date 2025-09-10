@@ -33,7 +33,9 @@ namespace TaskHub.Api.Infrastructure.Data.Repositories
         public async Task<IEnumerable<BoardEntity>> GetUserBoardsAsync(Guid userId)
         {
             return await _context.Boards
-                .Where(b => b.BoardMembers.Any(m => m.UserId == userId))
+                .Include(b => b.BoardMembers)
+                    .ThenInclude(bm => bm.User)
+                .Where(b => b.BoardMembers.Any(m => m.UserId == userId) || b.OwnerId == userId)
                 .ToListAsync();
         }
 

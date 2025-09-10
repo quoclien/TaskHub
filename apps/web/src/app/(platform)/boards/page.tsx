@@ -1,8 +1,9 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { Board } from '@taskhub/shared';
-import { Plus, Trash2, Calendar, Users } from 'lucide-react';
+import type { Board, BoardMember } from '@taskhub/shared';
+import { formatDate } from '@taskhub/shared';
+import { Plus, Trash2, Calendar, Users, Lock, Globe, UserPlus, UserMinus } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -16,15 +17,41 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useAuthStore } from '@/hooks/useAuthStore';
-import { fetchBoards, createBoard, deleteBoard } from '@/lib/api/board';
+import { fetchBoards, createBoard, deleteBoard, joinBoard, leaveBoard } from '@/lib/api/board';
 
 const BoardCard = ({
   board,
   onDelete,
+  onJoin,
+  onLeave,
+  currentUserId,
 }: {
   board: Board;
   onDelete: (id: string, boardTitle: string) => void;
+  onJoin: (boardId: string) => void;
+  onLeave: (boardId: string) => void;
+  currentUserId?: string;
 }) => {
+  const isUserMember = currentUserId ? board.members?.some(member => member.userId === currentUserId) : false;
+  const isOwner = currentUserId ? board.ownerId === currentUserId : false;
+  const canJoin = board.isPublic && !isUserMember && !isOwner;
+  const canLeave = (isUserMember || isOwner) && currentUserId;
+
+  // Debug logging
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`Board ${board.title}:`, {
+      boardId: board.id,
+      currentUserId,
+      boardOwnerId: board.ownerId,
+      isUserMember,
+      isOwner,
+      canJoin,
+      canLeave,
+      membersCount: board.members?.length || 0,
+      members: board.members?.map(m => ({ userId: m.userId, role: m.role, userName: m.userName })) || [],
+      isPublic: board.isPublic,
+    });
+  }
   return (
     <div className='group relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden'>
       <Link
@@ -40,38 +67,115 @@ const BoardCard = ({
               {board.description}
             </p>
           )}
-          <div className='flex items-center text-xs text-gray-500 dark:text-gray-500 space-x-4'>
-            <div className='flex items-center space-x-1'>
-              <Calendar className='w-3 h-3' />
-              <span>{new Date(board.created_at).toLocaleDateString()}</span>
+          <div className='flex items-center justify-between text-xs text-gray-500 dark:text-gray-500'>
+            <div className='flex items-center space-x-3'>
+              <div className='flex items-center space-x-1'>
+                <Calendar className='w-3 h-3' />
+                <span>{formatDate(board.createdAt, { month: 'short', day: 'numeric' })}</span>
+              </div>
+              <div className='flex items-center space-x-2'>
+                <Users className='w-3 h-3' />
+                <span>{board.members?.length || 0} members</span>
+                {board.members && board.members.length > 0 && (
+                  <div className='flex -space-x-1'>
+                    {board.members.slice(0, 3).map((member) => (
+                      <div
+                        key={member.userId}
+                        className='w-5 h-5 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-xs font-medium text-white border border-white dark:border-gray-800'
+                        title={`${member.userName} (${member.role})`}
+                      >
+                        {member.userName.charAt(0).toUpperCase()}
+                      </div>
+                    ))}
+                    {board.members.length > 3 && (
+                      <div className='w-5 h-5 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-xs font-medium text-gray-700 dark:text-gray-300 border border-white dark:border-gray-800'>
+                        +{board.members.length - 3}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
             <div className='flex items-center space-x-1'>
-              <Users className='w-3 h-3' />
-              <span>3 members</span>
+              {board.isPublic ? (
+                <div className='flex items-center space-x-1 text-green-600 dark:text-green-400'>
+                  <Globe className='w-3 h-3' />
+                  <span>Public</span>
+                </div>
+              ) : (
+                <div className='flex items-center space-x-1 text-amber-600 dark:text-amber-400'>
+                  <Lock className='w-3 h-3' />
+                  <span>Private</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </Link>
 
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onDelete(board.id, board.title);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
+      <div className='absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1'>
+        {canJoin && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onJoin(board.id);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                e.stopPropagation();
+                onJoin(board.id);
+              }
+            }}
+            className='p-1 rounded-md hover:bg-green-50 dark:hover:bg-green-900/20 text-green-600 dark:text-green-400 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2'
+            title='Join board'
+            tabIndex={0}
+          >
+            <UserPlus className='w-4 h-4' />
+          </button>
+        )}
+        {canLeave && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onLeave(board.id);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                e.stopPropagation();
+                onLeave(board.id);
+              }
+            }}
+            className='p-1 rounded-md hover:bg-orange-50 dark:hover:bg-orange-900/20 text-orange-600 dark:text-orange-400 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2'
+            title={isOwner ? 'Leave board (as owner)' : 'Leave board'}
+            tabIndex={0}
+          >
+            <UserMinus className='w-4 h-4' />
+          </button>
+        )}
+        <button
+          onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             onDelete(board.id, board.title);
-          }
-        }}
-        className='absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2'
-        title='Delete board'
-        tabIndex={0}
-      >
-        <Trash2 className='w-4 h-4' />
-      </button>
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete(board.id, board.title);
+            }
+          }}
+          className='p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2'
+          title='Delete board'
+          tabIndex={0}
+        >
+          <Trash2 className='w-4 h-4' />
+        </button>
+      </div>
     </div>
   );
 };
@@ -171,8 +275,17 @@ const CreateBoardModal = ({
 };
 
 const BoardsPage = () => {
-  const { token } = useAuthStore();
+  const { token, userId: currentUserId } = useAuthStore();
   const queryClient = useQueryClient();
+  
+  // Debug auth state
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 BoardsPage auth state:', {
+      hasToken: !!token,
+      currentUserId,
+      tokenLength: token?.length,
+    });
+  }
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [confirmTitle, setConfirmTitle] = useState('');
@@ -185,12 +298,12 @@ const BoardsPage = () => {
     error,
   } = useQuery<Board[]>({
     queryKey: ['boards'],
-    queryFn: () => fetchBoards(),
+    queryFn: () => fetchBoards(token || undefined),
     enabled: true, // Always enable the query since we have mock data
   });
 
   const createBoardMutation = useMutation({
-    mutationFn: (board: { title: string; description?: string }) => createBoard(board),
+    mutationFn: (board: { title: string; description?: string }) => createBoard(board, token || undefined),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['boards'] });
     },
@@ -200,7 +313,7 @@ const BoardsPage = () => {
   });
 
   const deleteBoardMutation = useMutation({
-    mutationFn: (boardId: string) => deleteBoard(boardId),
+    mutationFn: (boardId: string) => deleteBoard(boardId, token || undefined),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['boards'] });
       setIsDeleteModalOpen(false);
@@ -212,6 +325,71 @@ const BoardsPage = () => {
     },
   });
 
+  const joinBoardMutation = useMutation({
+    mutationFn: (boardId: string) => {
+      console.log('🔄 Join board mutation starting:', { boardId, hasToken: !!token });
+      return joinBoard(boardId, token || undefined);
+    },
+    onSuccess: (data) => {
+      console.log('✅ Join board mutation success:', data);
+      queryClient.invalidateQueries({ queryKey: ['boards'] });
+      // Show success message based on the response
+      if (data?.code === 'already_member') {
+        console.info('Already a member of this board');
+      } else {
+        console.info('Successfully joined board');
+      }
+    },
+    onError: (error: any) => {
+      const errorCode = error?.code;
+      const errorMessage = error?.message || 'Failed to join board';
+      
+      console.error('Join board error:', {
+        code: errorCode,
+        message: errorMessage,
+        status: error?.status,
+      });
+
+      // Show user-friendly error messages
+      if (errorCode === 'board_private') {
+        console.error('Board is private and requires an invitation');
+      } else if (errorCode === 'board_not_found') {
+        console.error('Board not found');
+      } else {
+        console.error('Join board error: ' + errorMessage);
+      }
+    },
+  });
+
+  const leaveBoardMutation = useMutation({
+    mutationFn: (boardId: string) => leaveBoard(boardId, token || undefined),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['boards'] });
+      console.info('Successfully left board');
+    },
+    onError: (error: any) => {
+      const errorCode = error?.code;
+      const errorMessage = error?.message || 'Failed to leave board';
+      
+      console.error('Leave board error:', {
+        code: errorCode,
+        message: errorMessage,
+        status: error?.status,
+      });
+
+      // Show user-friendly error messages with actionable advice
+      if (errorCode === 'last_owner') {
+        console.error('Cannot leave board as the last owner. Please transfer ownership to another member or delete the board.');
+      } else if (errorCode === 'not_member') {
+        console.error('You are not a member of this board');
+      } else if (errorCode === 'board_not_found') {
+        console.error('Board not found');
+      } else {
+        console.error('Leave board error: ' + errorMessage);
+      }
+    },
+  });
+
   const handleCreateBoard = (board: { title: string; description?: string }) => {
     createBoardMutation.mutate(board);
   };
@@ -219,6 +397,14 @@ const BoardsPage = () => {
   const handleDeleteBoard = (boardId: string, boardTitle: string) => {
     setBoardToDelete({ id: boardId, title: boardTitle });
     setIsDeleteModalOpen(true);
+  };
+
+  const handleJoinBoard = (boardId: string) => {
+    joinBoardMutation.mutate(boardId);
+  };
+
+  const handleLeaveBoard = (boardId: string) => {
+    leaveBoardMutation.mutate(boardId);
   };
 
   if (isLoading) {
@@ -295,6 +481,9 @@ const BoardsPage = () => {
                 key={board.id}
                 board={board}
                 onDelete={handleDeleteBoard}
+                onJoin={handleJoinBoard}
+                onLeave={handleLeaveBoard}
+                currentUserId={currentUserId ?? undefined}
               />
             ))}
           </div>

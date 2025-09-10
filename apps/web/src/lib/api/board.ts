@@ -6,6 +6,17 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5205/
 const DEV_TOKEN =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMTk4ZmE3NS1kZTBlLTcwNjAtOGY0Ny1iN2JhNzEzMjIzZmQiLCJqdGkiOiJkYjY0NzZlNC04MjE3LTQ2ZGUtYjgwYS01YTZlNTAyMmVmYzQiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiMDE5OGZhNzUtZGUwZS03MDYwLThmNDctYjdiYTcxMzIyM2ZkIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiYWRtaW4iLCJleHAiOjE3NTkxNDA2ODUsImlzcyI6IlRhc2tIdWItRGV2IiwiYXVkIjoiVGFza0h1Yi1EZXYtVXNlcnMifQ.2K66oSO3bZZoZ7gzjk23x_tUTZPPaY1_6ikaNsrz8pk';
 
+// Initialize auth store with the dev token for development
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  // Dynamically import to avoid SSR issues
+  import('@/hooks/useAuthStore').then(({ useAuthStore }) => {
+    const store = useAuthStore.getState();
+    if (!store.token) {
+      store.setToken(DEV_TOKEN);
+    }
+  });
+}
+
 // Mock data for development
 const mockBoards = [
   {
@@ -38,7 +49,7 @@ const mockBoards = [
   },
 ];
 
-export const fetchBoards = async () => {
+export const fetchBoards = async (token?: string) => {
   // For development, return mock data unless explicitly disabled for E2E testing
   const DISABLE_MOCKS = process.env.NEXT_PUBLIC_DISABLE_MOCKS === 'true';
   if (false && process.env.NODE_ENV === 'development' && !DISABLE_MOCKS) {
@@ -64,7 +75,7 @@ export const fetchBoards = async () => {
   return response.json();
 };
 
-export const createBoard = async (board: { title: string; description?: string }) => {
+export const createBoard = async (board: { title: string; description?: string }, token?: string) => {
   const response = await fetch(`${API_BASE}/boards`, {
     method: 'POST',
     headers: {
@@ -82,7 +93,7 @@ export const createBoard = async (board: { title: string; description?: string }
   return response.json();
 };
 
-export const deleteBoard = async (boardId: string) => {
+export const deleteBoard = async (boardId: string, token?: string) => {
   const response = await fetch(`${API_BASE}/boards/${boardId}`, {
     method: 'DELETE',
     headers: {
@@ -516,4 +527,151 @@ export const deleteList = async (boardId: string, listId: string) => {
     console.error('Delete list error:', errorText);
     throw new Error('Failed to delete list');
   }
+};
+
+/**
+ * Join a board as a member
+ */
+export const joinBoard = async (boardId: string, token?: string) => {
+  const response = await fetch(`${API_BASE}/boards/${boardId}/join`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token || DEV_TOKEN}`,
+    },
+  });
+
+  // Handle success case (200)
+  if (response.ok) {
+    return response.json();
+  }
+
+  // Handle error cases with ProblemDetails
+  let errorData;
+  try {
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      errorData = await response.json();
+    } else {
+      const errorText = await response.text();
+      if (errorText.trim()) {
+        // Try to parse as JSON anyway
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          // Not JSON, use text as detail
+          errorData = {
+            detail: errorText,
+            code: 'unknown_error',
+          };
+        }
+      } else {
+        // Empty response body - provide specific error based on status code
+        const defaultMessages: Record<number, { detail: string; code: string }> = {
+          400: { detail: 'Bad request - invalid data provided', code: 'bad_request' },
+          401: { detail: 'Authentication required', code: 'unauthorized' },
+          403: { detail: 'Board is private and requires an invitation', code: 'board_private' },
+          404: { detail: 'Board not found', code: 'board_not_found' },
+          500: { detail: 'Internal server error', code: 'internal_error' },
+        };
+
+        errorData = defaultMessages[response.status] || {
+          detail: 'An unexpected error occurred while joining the board',
+          code: 'unknown_error',
+        };
+      }
+    }
+  } catch (parseError) {
+    console.error('Error parsing response:', parseError);
+    // Final fallback
+    errorData = {
+      detail: 'An unexpected error occurred while joining the board',
+      code: 'unknown_error',
+    };
+  }
+
+  const errorMessage = errorData.detail || 'Failed to join board';
+  const errorCode = errorData.code || 'unknown_error';
+
+  console.error('Join board error:', {
+    status: response.status,
+    code: errorCode,
+    message: errorMessage,
+    fullResponse: errorData,
+  });
+
+  // Create error with additional context
+  const error = new Error(errorMessage) as Error & { code?: string; status?: number };
+  error.code = errorCode;
+  error.status = response.status;
+
+  throw error;
+};
+
+/**
+ * Leave a board (remove yourself as a member)
+ */
+export const leaveBoard = async (boardId: string, token?: string) => {
+  const response = await fetch(`${API_BASE}/boards/${boardId}/leave`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token || DEV_TOKEN}`,
+    },
+  });
+
+  // Handle success case (200)
+  if (response.ok) {
+    return response.json();
+  }
+
+  // Handle error cases with ProblemDetails
+  let errorData;
+  try {
+    const errorText = await response.text();
+    if (errorText.trim()) {
+      errorData = JSON.parse(errorText);
+    } else {
+      // Fallback for empty responses
+      errorData = {
+        detail: 'An unexpected error occurred while leaving the board',
+        code: 'unknown_error',
+      };
+    }
+  } catch (parseError) {
+    // Fallback for non-JSON responses
+    errorData = {
+      detail: 'An unexpected error occurred while leaving the board',
+      code: 'unknown_error',
+    };
+  }
+
+  const errorMessage = errorData.detail || 'Failed to leave board';
+  const errorCode = errorData.code || 'unknown_error';
+
+  // Provide user-friendly messages for specific error codes
+  let userFriendlyMessage = errorMessage;
+  if (errorCode === 'last_owner') {
+    userFriendlyMessage = 'Cannot leave board as the last owner. Please transfer ownership to another member or delete the board.';
+  } else if (errorCode === 'not_member') {
+    userFriendlyMessage = 'You are not a member of this board.';
+  } else if (errorCode === 'board_not_found') {
+    userFriendlyMessage = 'Board not found.';
+  }
+
+  console.error('Leave board error:', {
+    status: response.status,
+    code: errorCode,
+    message: errorMessage,
+    userFriendlyMessage,
+    fullResponse: errorData,
+  });
+
+  // Create error with additional context
+  const error = new Error(userFriendlyMessage) as Error & { code?: string; status?: number; originalMessage?: string };
+  error.code = errorCode;
+  error.status = response.status;
+  error.originalMessage = errorMessage;
+
+  throw error;
 };

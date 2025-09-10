@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Data.Common;
+using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Hosting;
@@ -19,6 +21,18 @@ namespace TaskHub.Api.IntegrationTests
         {
             // Set environment to Testing to avoid runtime seeding
             builder.UseEnvironment("Testing");
+
+            builder.ConfigureAppConfiguration((context, config) =>
+            {
+                // Load configuration files from the API project - corrected path
+                var testDirectory = Directory.GetCurrentDirectory();
+                var solutionDirectory = Directory.GetParent(testDirectory)?.Parent?.Parent?.FullName;
+                var apiProjectPath = Path.Combine(solutionDirectory, "apps", "api");
+                config.SetBasePath(apiProjectPath);
+                config.AddJsonFile("appsettings.json", optional: false);
+                config.AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true);
+                config.AddEnvironmentVariables();
+            });
 
             builder.ConfigureServices(services =>
             {

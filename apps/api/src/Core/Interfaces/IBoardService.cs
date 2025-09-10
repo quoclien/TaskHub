@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TaskHub.Api.Common;
 using TaskHub.Api.Models.Dtos.Boards;
 using TaskHub.Api.Models.Entities.Enums;
 
@@ -14,7 +15,8 @@ namespace TaskHub.Api.Core.Interfaces
         Task<bool> UpdateBoardAsync(Guid id, UpdateBoardDto updateBoardDto, Guid userId);
         Task<bool> DeleteBoardAsync(Guid id, Guid userId);
         Task<bool> AddBoardMemberAsync(Guid boardId, Guid userId, Guid currentUserId, BoardRole role = BoardRole.Member);
-        Task<bool> RemoveBoardMemberAsync(Guid boardId, Guid userId, Guid currentUserId);
+        Task<ServiceResult<object>> JoinPublicBoardAsync(Guid boardId, Guid userId);
+        Task<ServiceResult<object>> RemoveBoardMemberAsync(Guid boardId, Guid userId, Guid currentUserId);
         Task<bool> UpdateBoardMemberRoleAsync(Guid boardId, Guid userId, Guid currentUserId, BoardRole newRole);
     }
 }

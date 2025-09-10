@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TaskHub.Api.Common;
 using TaskHub.Api.Core.Authorization;
 using TaskHub.Api.Core.Interfaces;
 using TaskHub.Api.Models.Dtos.Boards;
@@ -25,7 +26,7 @@ namespace TaskHub.Api.Controllers
         {
             try
             {
-                var userId = Guid.Parse(User?.Identity?.Name ?? throw new UnauthorizedAccessException("User not authenticated"));
+                var userId = HttpContext.GetUserId();
                 var boards = await _boardService.GetUserBoardsAsync(userId);
                 return Ok(boards);
             }
@@ -48,7 +49,7 @@ namespace TaskHub.Api.Controllers
         {
             try
             {
-                var userId = Guid.Parse(User?.Identity?.Name ?? throw new UnauthorizedAccessException("User not authenticated"));
+                var userId = HttpContext.GetUserId();
                 var board = await _boardService.GetBoardByIdAsync(id, userId);
                 return board == null ? NotFound() : Ok(board);
             }
@@ -70,7 +71,7 @@ namespace TaskHub.Api.Controllers
         {
             try
             {
-                var userId = Guid.Parse(User?.Identity?.Name ?? throw new UnauthorizedAccessException("User not authenticated"));
+                var userId = HttpContext.GetUserId();
                 var board = await _boardService.CreateBoardAsync(createBoardDto, userId);
                 return CreatedAtAction(nameof(GetBoard), new { id = board.Id }, board);
             }
@@ -100,7 +101,7 @@ namespace TaskHub.Api.Controllers
 
             try
             {
-                var userId = Guid.Parse(User?.Identity?.Name ?? throw new UnauthorizedAccessException("User not authenticated"));
+                var userId = HttpContext.GetUserId();
 
                 await _boardService.UpdateBoardAsync(id, updateBoardDto, userId);
                 return NoContent();
@@ -128,7 +129,7 @@ namespace TaskHub.Api.Controllers
         {
             try
             {
-                var userId = Guid.Parse(User?.Identity?.Name ?? throw new UnauthorizedAccessException("User not authenticated"));
+                var userId = HttpContext.GetUserId();
 
                 await _boardService.DeleteBoardAsync(id, userId);
                 return NoContent();
@@ -151,24 +152,37 @@ namespace TaskHub.Api.Controllers
         [HttpPost("{id}/join")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> JoinBoard(Guid id)
         {
             try
             {
-                var userId = Guid.Parse(User?.Identity?.Name ?? throw new UnauthorizedAccessException("User not authenticated"));
+                var userId = HttpContext.GetUserId();
+                var result = await _boardService.JoinPublicBoardAsync(id, userId);
 
-                var success = await _boardService.AddBoardMemberAsync(id, userId, userId, BoardRole.Member);
-                if (!success)
+                if (!result.Success)
                 {
-                    return BadRequest("Unable to join board. Board may be private or you may already be a member.");
+                    var statusCode = result.Code switch
+                    {
+                        BoardErrorCodes.BoardNotFound => StatusCodes.Status404NotFound,
+                        BoardErrorCodes.BoardPrivate => StatusCodes.Status403Forbidden,
+                        BoardErrorCodes.UserNotFound => StatusCodes.Status404NotFound,
+                        _ => StatusCodes.Status400BadRequest
+                    };
+
+                    return StatusCode(statusCode, new 
+                    { 
+                        type = "https://tools.ietf.org/html/rfc7231",
+                        title = "Join Board Failed",
+                        status = statusCode,
+                        detail = result.Message,
+                        code = result.Code,
+                        instance = HttpContext.Request.Path.ToString()
+                    });
                 }
 
-                return Ok(new { message = "Successfully joined board" });
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
+                return Ok(new { message = result.Message, code = result.Code });
             }
             catch (Exception ex)
             {
@@ -184,24 +198,38 @@ namespace TaskHub.Api.Controllers
         [HttpPost("{id}/leave")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> LeaveBoard(Guid id)
         {
             try
             {
-                var userId = Guid.Parse(User?.Identity?.Name ?? throw new UnauthorizedAccessException("User not authenticated"));
+                var userId = HttpContext.GetUserId();
+                var result = await _boardService.RemoveBoardMemberAsync(id, userId, userId);
 
-                var success = await _boardService.RemoveBoardMemberAsync(id, userId, userId);
-                if (!success)
+                if (!result.Success)
                 {
-                    return BadRequest("Unable to leave board. You may not be a member or may be the owner.");
+                    var statusCode = result.Code switch
+                    {
+                        BoardErrorCodes.BoardNotFound => StatusCodes.Status404NotFound,
+                        BoardErrorCodes.NotMember => StatusCodes.Status400BadRequest,
+                        BoardErrorCodes.LastOwner => StatusCodes.Status400BadRequest,
+                        BoardErrorCodes.Unauthorized => StatusCodes.Status403Forbidden,
+                        _ => StatusCodes.Status400BadRequest
+                    };
+
+                    return StatusCode(statusCode, new 
+                    { 
+                        type = "https://tools.ietf.org/html/rfc7231",
+                        title = "Leave Board Failed",
+                        status = statusCode,
+                        detail = result.Message,
+                        code = result.Code,
+                        instance = HttpContext.Request.Path.ToString()
+                    });
                 }
 
-                return Ok(new { message = "Successfully left board" });
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
+                return Ok(new { message = result.Message, code = result.Code });
             }
             catch (Exception ex)
             {

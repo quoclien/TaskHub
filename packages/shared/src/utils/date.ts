@@ -6,7 +6,7 @@
  * @returns Formatted date string
  */
 export function formatDate(
-  date: Date | number | string,
+  date: Date | number | string | null | undefined,
   options: Intl.DateTimeFormatOptions = {
     year: 'numeric',
     month: 'short',
@@ -14,6 +14,11 @@ export function formatDate(
   },
   locale = 'en-US',
 ): string {
+  // Handle null or undefined dates
+  if (!date) {
+    return 'N/A';
+  }
+
   let dateObj: Date;
 
   if (typeof date === 'string') {
@@ -33,7 +38,7 @@ export function formatDate(
 
   // Handle invalid dates
   if (isNaN(dateObj.getTime())) {
-    throw new Error('Invalid date');
+    return 'Invalid Date';
   }
 
   return new Intl.DateTimeFormat(locale, options).format(dateObj);
