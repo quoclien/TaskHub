@@ -1,0 +1,17 @@
+---
+description: TaskHub Backend Best Practices & Style Guide
+globs: apps/api/**/*.cs
+---
+
+- Follow Single Responsibility Principle and use constructor-based Dependency Injection.
+- All I/O-bound operations must be async/await.
+- Use immutable DTOs/models where possible.
+- Organize code by feature: Controllers, Core, Infrastructure, Services, Hubs.
+- Use repository pattern for data access; abstract with interfaces.
+- Use LINQ for queries, AsNoTracking for read-only, and manage schema via EF Core migrations.
+- Use xUnit for TDD, with Arrange-Act-Assert structure and proper naming.
+- Use Serilog for structured logging and implement global exception middleware.
+- Validate DTOs with FluentValidation; return 400 on validation errors.
+- Naming: PascalCase for classes/methods/properties, camelCase for locals, I-prefixed interfaces, _ for private fields.
+- File names must match primary class.
+- Use explicit namespace qualification for non-primitive types unless using statements are present.

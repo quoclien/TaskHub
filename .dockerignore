@@ -1,0 +1,19 @@
+# Common
+**/bin
+**/obj
+**/node_modules
+.git
+.gitignore
+*.md
+
+# Web project
+apps/web
+
+# API project
+apps/api/bin
+apps/api/obj
+
+# Docker
+Dockerfile
+docker-compose.yml
+docker-compose.override.yml

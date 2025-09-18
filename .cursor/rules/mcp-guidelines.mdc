@@ -1,0 +1,105 @@
+
+# MCP Usage Guidelines (TaskHub)
+
+## Server Priority (attempt in this order)
+
+1. `sequential_thinking` - multi-step reasoning/planning
+2. `context7` - external docs/code RAG
+3. `serena` - codebase search/edits  
+4. `fetch` - web/doc retrieval
+5. `github` - repo/PR/CI operations
+6. `docker_mcp` - container orchestration
+7. `dependency_scanner` - package version/audit
+8. `filesystem` - controlled file operations
+9. `memory` - persistent context
+10. `playwright` - browser automation/testing
+11. `mcp_compass` - discover additional servers
+
+## Core Rules
+
+- **Default-to-MCP**: Use MCP tools before raw reasoning for search, edits, external docs, CI, or infrastructure tasks
+- **Tool limits**: Stay ≤ 40 total tools across all servers
+- **Naming**: Use `snake_case` names only (Cursor discovery bug with dashes)
+- **Security**: Secrets via environment variables only; never echo token values
+
+## Usage Patterns
+
+- Planning/reasoning → `sequential_thinking`
+- Code operations → `serena`
+- External documentation → `context7` → `fetch` fallback  
+- Repository/CI tasks → `github`
+- Container management → `docker_mcp`
+- Dependency checks → `dependency_scanner`
+- File operations → `filesystem`
+- Browser testing → `playwright`
+
+## Evolution
+
+Run `mcp_compass` quarterly to discover new servers and optimize the server list.
+
+## Sequential Thinking Best Practices
+
+- **Trigger**: Initiate `sequential_thinking` whenever the user requests “step-by-step reasoning”, “think step by step”, or similar wording. No extra markers are needed in the user prompt.
+- **Mandatory fields**: Each call must include `thought`, `nextThoughtNeeded`, `thoughtNumber`, and `totalThoughts`.
+- **Revision handling**: When correcting earlier logic, set `isRevision=true` and specify `revisesThought` with the original step number; increment `thoughtNumber`.
+- **Branching**: To explore alternatives, set `branchFromThought` on the first divergent step and provide a short `branchId` (e.g., "A", "B"). Keep including `branchId` on subsequent steps in that branch.
+- **Adaptive total**: Treat `totalThoughts` as a forecast—update it upward or downward as understanding evolves.
+- **Termination**: End by sending `nextThoughtNeeded=false`. Then summarise the reasoning and present the final answer; never dump the raw chain to the user.
+- **Privacy**: The detailed chain is an internal audit trail. Expose only concise progress summaries unless the user explicitly asks for the full chain.
+- **Token hygiene**: Keep each `thought` short (1–3 sentences) yet self-contained.
+
+## Serena Best Practices
+
+- **Trigger**: Invoke Serena tooling automatically whenever the task involves code or filesystem exploration, search, reading, editing, refactoring, or project-wide reasoning.  The user simply states the goal; the agent selects the right Serena tool(s).
+- **Session bootstrap**: At the beginning of a new coding task or session:
+  1. Call `mcp_serena_initial_instructions`.
+  2. Call `mcp_serena_check_onboarding_performed`; if onboarding is incomplete, run `mcp_serena_onboarding`.
+- **Information gathering**:
+  - Prefer semantic exploration (`codebase_search`, `mcp_serena_get_symbols_overview`) before reading files line-by-line.
+  - Combine independent search/reading operations with `multi_tool_use.parallel` to accelerate discovery.
+  - After any non-trivial set of searches, call `mcp_serena_think_about_collected_information`.
+- **Edits**:
+  - Use symbol-level tools (`mcp_serena_replace_symbol_body`, `mcp_serena_insert_after_symbol`, `mcp_serena_insert_before_symbol`) over regex or raw text when feasible.
+  - Before every edit, run `mcp_serena_think_about_task_adherence`.
+  - Limit to three automated fix-loops on linter/test failures; then ask the user.
+- **Task management**: Track work with `todo_write`, keeping only one `in_progress` task at a time and honouring dependencies.
+- **Session close**: When work seems done, call `mcp_serena_think_about_whether_you_are_done` followed by `mcp_serena_summarize_changes`.
+- **Parallelism**: Default to parallel tool calls unless a call’s output is strictly required for the next step.
+- **Memory hygiene**: Reserve `update_memory` for persistent user preferences or long-lived project facts—never transient implementation notes.
+- **User dialogue**: Never expose internal tool names; narrate high-level actions in plain language.
+- **Error recovery**: If language-server state becomes stale after external edits, recommend `mcp_serena_restart_language_server`.
+
+## Context7 Best Practices
+
+- **Trigger**: Append `use context7` or otherwise request up-to-date library docs ("show me the latest React useState API"). No need to mention the tools; the agent takes over.
+- **Primary flow**:
+  1. Call `mcp_context7_resolve-library-id` with `libraryName` unless the user already supplied a Context7-style ID (`/org/project`).
+  2. Immediately call `mcp_context7_get-library-docs` using the returned ID. Include `topic` to narrow scope (e.g., "hooks", "routing"). Increase `tokens` only if the answer truly needs more context (>10 k tokens makes messages heavy).
+- **When to skip `resolve-library-id`**: If the prompt includes a full Context7 ID or when a previous call already resolved the same library in the current exchange.
+- **Parallelism**: Fetch docs for different libraries in parallel; `resolve`→`get-docs` pairs for the *same* library must stay sequential.
+- **Caching**: Re-use a previously resolved ID within the same conversation to avoid extra calls.
+- **Response use**: Summarise docs into the LLM prompt; never dump raw blobs to the user unless asked.
+
+## Fetch Best Practices
+
+- **Trigger**: The user asks to pull content from a URL or for real-time web information, or the agent needs to cite an external source.
+- **Tool parameters**:
+  - `url` – must be fully qualified (https://...).
+  - `max_length` – default 5 000 characters; raise only if short truncation is a problem. Keep under 20 k to fit context.
+  - `start_index` – paginate long pages by re-issuing calls (`0`, `5000`, `10000`, ...).
+  - `raw` – `true` when HTML tags are required for parsing; otherwise omit to receive markdown.
+- **Parallelism**: Fetch multiple independent URLs simultaneously. When paginating one URL, sequential calls are required.
+- **Robots.txt & ethics**: The server honours `robots.txt` for model-initiated requests; user-initiated requests override. Avoid internal/private IPs.
+- **Security**: Never embed fetched secrets directly; sanitise before returning.
+
+## MCP Compass Best Practices
+
+- **Trigger**: Need to discover a new MCP server ("find a server that can deploy AWS Lambda"), or periodic ecosystem scan.
+- **Query crafting**:
+  1. State the **vendor/platform** ("AWS", "Stripe", "PostgreSQL").
+  2. Specify the **operation/service** ("Lambda deployment", "refund webhook").
+  3. Add **context** (language, runtime, auth needs) if relevant.
+  4. Example good query: `AWS Lambda Python3.12 deployment`.
+- **Usage flow**: Submit the crafted query once; evaluate the list of candidates; optionally refine with a second, more specific query. Do **not** spam the tool with minor variations.
+- **When not to use**: If a well-known server is already configured, or the task is solvable with existing tools.
+- **Follow-up**: After selecting a server, add it to `mcp.json` (outside the guidelines scope) and, if relevant, document it in these rules.

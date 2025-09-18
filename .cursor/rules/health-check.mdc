@@ -1,0 +1,14 @@
+---
+description: TaskHub Project Health Check Protocol
+alwaysApply: true
+---
+
+Before and after code changes, run the following:
+1. Install all dependencies (`pnpm install --frozen-lockfile`).
+2. Clean backend artifacts (`dotnet clean`).
+3. Enforce code style (`dotnet format`, `pnpm lint`).
+4. Build and typecheck all code (`pnpm build`, `dotnet build`).
+5. Run all tests (`dotnet test`, `pnpm test:run`).
+6. Scan for vulnerabilities (`dotnet list package --vulnerable`, `pnpm audit`).
+7. Check for pending EF Core migrations.
+On any failure: STOP, log the error, analyze, fix, and re-run the health check.

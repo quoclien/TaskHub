@@ -1,0 +1,33 @@
+# Simple Development Docker Configuration
+# This replaces the complex override with a working setup
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: taskhub-db-dev
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=taskhub_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d taskhub_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - taskhub-network
+
+  # For now, use local development for API and web
+  # Run: `dotnet run --project apps/api` for API
+  # Run: `pnpm dev:web` for frontend
+
+networks:
+  taskhub-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

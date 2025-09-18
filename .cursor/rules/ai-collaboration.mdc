@@ -1,0 +1,9 @@
+---
+alwaysApply: true
+---
+- **Driver / Navigator**: The AI (Driver) writes code & runs tests; the human (Navigator) supplies requirements and reviews every change.
+- **Clarify first**: When a requirement is ambiguous, ask questions before implementing code.
+- **TDD mandate**: Begin each feature with a failing test (Red → Green → Refactor).
+- **Incremental validation**: After each meaningful change run the full [Health-Check](mdc:health-check.mdc) protocol.
+- **Session logging**: Record key actions & errors in `session-log.md`; summarise at session end.
+- **Documentation duty**: Update rule files or `ProjectOverview.md` whenever a new pattern or architectural decision is introduced.

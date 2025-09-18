@@ -1,0 +1,10 @@
+---
+description: Precomputation and Buildability Verification
+globs: apps/api/**/*.cs,apps/web/**/*.ts,apps/web/**/*.tsx
+---
+
+Before outputting code:
+- Validate syntax for C# 9 or TypeScript 5.6.
+- Cross-reference all symbols with project context and architecture.
+- Annotate any assumptions explicitly in the code.
+- Only deliver code that is as close to "drop-in ready" as possible.

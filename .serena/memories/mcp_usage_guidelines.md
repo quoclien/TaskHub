@@ -1,0 +1,1 @@
+I will adhere to the MCP Usage Guidelines. I will prioritize using MCP tools for tasks like reasoning, code operations, documentation retrieval, and more, following the specified server priority. I will use snake_case for tool names, manage secrets securely, and follow the best practices for each MCP server, such as `sequential_thinking`, `serena`, and `context7`.
